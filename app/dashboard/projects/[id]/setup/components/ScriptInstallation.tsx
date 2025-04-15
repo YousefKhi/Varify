@@ -30,7 +30,7 @@ export default function ScriptInstallation({ projectId }: ScriptInstallationProp
     <div className="border rounded-lg">
       <div className="p-6">
         <p className="text-sm mb-3">
-          Add this script to your website's <code className="bg-base-200 p-1 rounded text-xs">&lt;head&gt;</code> tag:
+          Add this script to your website&apos;s <code className="bg-base-200 p-1 rounded text-xs">&lt;head&gt;</code> tag:
         </p>
         
         <div className="bg-base-200 rounded-lg p-4 relative">
@@ -62,7 +62,7 @@ export default function ScriptInstallation({ projectId }: ScriptInstallationProp
             This script automatically loads and runs A/B tests on your website
           </li>
           <li>
-            It's lightweight (less than 5KB) and won't slow down your site
+            It&apos;s lightweight (less than 5KB) and won&apos;t slow down your site
           </li>
           <li>
             All tracking is handled automatically in the background

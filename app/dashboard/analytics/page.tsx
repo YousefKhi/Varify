@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import BackToDashboard from "../components/BackToDashboard";
-import AnalyticsHeader from "./components/AnalyticsHeader";
-import AnalyticsOverview from "./components/AnalyticsOverview";
-import ProjectsList from "./components/ProjectsList";
-import LoadingAnalytics from "./components/LoadingAnalytics";
+import BackToDashboard from "@/app/dashboard/components/BackToDashboard";
+import AnalyticsHeader from "@/app/dashboard/analytics/components/AnalyticsHeader";
+import AnalyticsOverview from "@/app/dashboard/analytics/components/AnalyticsOverview";
+import ProjectsList from "@/app/dashboard/analytics/components/ProjectsList";
+import LoadingAnalytics from "@/app/dashboard/analytics/components/LoadingAnalytics";
 
 export const dynamic = "force-dynamic";
 

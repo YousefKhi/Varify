@@ -3,11 +3,10 @@
 import { useState } from "react";
 
 type ProjectStatsProps = {
-  projectId: string;
   lastPingAt: string | null;
 };
 
-export default function ProjectStats({ projectId, lastPingAt }: ProjectStatsProps) {
+export default function ProjectStats({ lastPingAt }: ProjectStatsProps) {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
   
   // Check if script is initialized (ping within last 5 minutes)

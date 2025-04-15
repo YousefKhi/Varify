@@ -31,7 +31,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <ProjectStats projectId={project.id} lastPingAt={project.last_ping_at} />
+            <ProjectStats lastPingAt={project.last_ping_at} />
             <TestsSection projectId={project.id} />
           </div>
           
