@@ -1,9 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    appDir: true, // 👈 this tells Next.js to use /app as your router
+  },
   images: {
     domains: [
-      // NextJS <Image> component needs to whitelist domains for src={}
       "lh3.googleusercontent.com",
       "pbs.twimg.com",
       "images.unsplash.com",
