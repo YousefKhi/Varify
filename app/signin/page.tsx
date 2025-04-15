@@ -36,6 +36,7 @@ export default function Login() {
           options: {
             redirectTo: redirectURL,
           },
+        
         });
       } else if (type === "magic_link") {
         await supabase.auth.signInWithOtp({
