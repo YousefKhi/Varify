@@ -34,4 +34,10 @@ export async function POST(request: NextRequest) {
     // Ensure a success response even on general errors
     return NextResponse.json({ success: true }, { status: 200 });
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  // Return a simple 200 OK response
+  // The CORS headers will be added by next.config.js
+  return new NextResponse(null, { status: 200 });
 } 

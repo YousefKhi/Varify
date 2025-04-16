@@ -15,12 +15,11 @@ export async function GET(request: NextRequest) {
   const supabase = createClient();
   
   try {
-    // Fetch active tests for the project
+    // Fetch tests for the project (removed status filter)
     const { data, error } = await supabase
       .from("tests")
       .select("*")
-      .eq("project_id", projectId)
-      .eq("status", "active");
+      .eq("project_id", projectId);
       
     if (error) {
       throw error;
