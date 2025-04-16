@@ -10,7 +10,7 @@ type ScriptInstallationProps = {
 export default function ScriptInstallation({ projectId }: ScriptInstallationProps) {
   const [copied, setCopied] = useState(false);
   
-  const scriptCode = `<script src="https://localhost:3000/embed.js" data-project="${projectId}" async></script>`;
+  const scriptCode = `<script src="https://varify-sepia.vercel.app/embed.js" data-project="${projectId}" async></script>`;
   
   const copyToClipboard = async () => {
     try {

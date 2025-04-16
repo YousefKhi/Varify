@@ -1,7 +1,7 @@
 (function () {
   // Configuration
   // FOR LOCAL TESTING ONLY:
-  const API_BASE_URL = 'http://localhost:3000/api';
+  const API_BASE_URL = 'http://varify-sepia.vercel.app/api';
   // REMEMBER TO CHANGE BACK TO YOUR PRODUCTION URL BEFORE DEPLOYING!
   // const API_BASE_URL = 'https://abfast.dev/api'; // Example production URL
 
