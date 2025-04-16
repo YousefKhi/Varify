@@ -6,12 +6,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { projectId } = body;
     
+    console.log(`Received ping for projectId: ${projectId}`);
+
     if (!projectId) {
+      console.error("Ping request missing projectId");
       return NextResponse.json({ error: "projectId is required" }, { status: 400 });
     }
     
     const supabase = createClient();
     
+    console.log(`Attempting to update last_ping_at for projectId: ${projectId}`);
+
     // Update the last_ping_at timestamp for the project
     const { error } = await supabase
       .from("projects")
@@ -19,18 +24,20 @@ export async function POST(request: NextRequest) {
       .eq("id", projectId);
       
     if (error) {
-      // Don't throw error if project not found, just log it
-      if (error.code !== 'PGRST116') { // PGRST116: Row not found
-        console.error("Error updating project ping timestamp:", error);
-        // Still return success to the client, as ping failure is not critical
-      }
+      // Log any error during update
+      console.error(`Supabase update error for projectId ${projectId}:`, error); 
+      // if (error.code !== 'PGRST116') { 
+      //   console.error("Error updating project ping timestamp:", error);
+      // }
+    } else {
+      console.log(`Successfully updated last_ping_at for projectId: ${projectId}`);
     }
     
     // Respond with success regardless of update outcome to avoid breaking client script
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error) {
-    console.error("Error processing ping:", error);
+    console.error("Error processing ping request:", error);
     // Ensure a success response even on general errors
     return NextResponse.json({ success: true }, { status: 200 });
   }
