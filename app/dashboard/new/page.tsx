@@ -32,11 +32,10 @@ export default function AddSitePage() {
       </div>
 
       <div className="max-w-5xl mx-auto w-full py-8 px-4 flex-1">
+        <h1 className="text-2xl font-bold mb-8 text-center">Add a new website</h1>
+        
         <Suspense>
-          <StepsIndicator currentStep={1} />
-          
           <div className="mt-8 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-8">Add a new website</h1>
             <AddSiteForm />
           </div>
         </Suspense>
