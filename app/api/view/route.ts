@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
     
     const supabase = createClient();
-    
+    //get user id from session
     // Insert view into database
     const { error } = await supabase
       .from("views")
