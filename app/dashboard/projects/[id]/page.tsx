@@ -16,10 +16,11 @@ export default async function ProjectPage({ params }: { params: { id: string } }
     // Get the project, including last_ping_at
     const { data: project, error } = await supabase
       .from('projects')
-      .select('id, name,created_at, site_url')
-      .eq('id', '92f7868b-df04-4d72-8036-2f8012486a57')
+      .select('id, name, created_at, site_url')
+      .eq('id', params.id)
       .single();
    
+    console.log("Query result:", { project, error, queried_id: params.id });
     
     return (
       <main className="min-h-screen p-8 pb-24">
