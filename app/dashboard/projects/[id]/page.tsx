@@ -21,6 +21,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
     }
     
     if (!project) {
+      console.log(`Project not found for ID: ${params.id}`);
       return notFound();
     }
     
@@ -53,7 +54,10 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                   <p className="text-gray-600 mt-2">{project.description}</p>
                 )}
                 <div className="mt-2 text-sm text-gray-500">
-                  Created on {new Date(project.created_at).toLocaleDateString()}
+                  {project.created_at ? 
+                    `Created on ${new Date(project.created_at).toLocaleDateString()}` : 
+                    'Creation date not available'
+                  }
                 </div>
               </div>
               
@@ -133,7 +137,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
       </main>
     );
   } catch (error) {
-    console.error("Error in project page:", error);
+    console.error(`Error loading project page for ID: ${params.id}`, error);
     return (
       <main className="min-h-screen p-8 pb-24">
         <div className="max-w-7xl mx-auto">
