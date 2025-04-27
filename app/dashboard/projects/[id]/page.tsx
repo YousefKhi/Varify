@@ -17,18 +17,9 @@ export default async function ProjectPage({ params }: { params: { id: string } }
     const { data: project, error } = await supabase
       .from('projects')
       .select('id, name,created_at, site_url')
-      .eq('92f7868b-df04-4d72-8036-2f8012486a57', params.id)
+      .eq('id', '92f7868b-df04-4d72-8036-2f8012486a57')
       .single();
-      
-    if (error) {
-      console.error("Error fetching project:", error);
-      throw error;
-    }
-    
-    if (!project) {
-      console.log(`Project not found for ID: ${params.id}`);
-      return notFound();
-    }
+   
     
     return (
       <main className="min-h-screen p-8 pb-24">
