@@ -1,16 +1,12 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/libs/supabase/server";
-import BackToDashboard from "@/app/dashboard/components/BackToDashboard";
-import ProjectHeader from "@/app/dashboard/projects/[id]/components/ProjectHeader";
-import TestsSection from "@/app/dashboard/projects/[id]/components/TestsSection";
-import ProjectStats from "@/app/dashboard/projects/[id]/components/ProjectStats";
-import ProjectSettings from "@/app/dashboard/projects/[id]/components/ProjectSettings";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
+  console.log("Project ID:", params.id);
   
   try {
     // Get the project, including last_ping_at
