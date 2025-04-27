@@ -11,8 +11,8 @@ export default async function ProjectPage({ params }: { params: { id: string } }
     // Get the project, including last_ping_at
     const { data: project, error } = await supabase
       .from('projects')
-      .select('id, name, description, created_at, site_url, last_ping_at')
-      .eq('id', params.id)
+      .select('id, name,created_at, site_url')
+      .eq('92f7868b-df04-4d72-8036-2f8012486a57', params.id)
       .single();
       
     if (error) {
@@ -50,9 +50,6 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold">{project.name}</h1>
-                {project.description && (
-                  <p className="text-gray-600 mt-2">{project.description}</p>
-                )}
                 <div className="mt-2 text-sm text-gray-500">
                   {project.created_at ? 
                     `Created on ${new Date(project.created_at).toLocaleDateString()}` : 
@@ -123,12 +120,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                 </div>
                 <div>
                   <label className="font-medium block mb-1">Script Installation</label>
-                  <p className="text-sm">
-                    Status: {project.last_ping_at ? 
-                      <span className="text-success font-medium">Installed</span> : 
-                      <span className="text-warning font-medium">Not detected</span>
-                    }
-                  </p>
+                  
                 </div>
               </div>
             </div>
@@ -136,8 +128,14 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         </div>
       </main>
     );
-  } catch (error) {
-    console.error(`Error loading project page for ID: ${params.id}`, error);
+  } catch (error: any) {
+    console.error(`Error loading project page for ID: ${params.id}`);
+    console.error("Error Details:", { 
+      message: error.message, 
+      code: error.code, 
+      details: error.details 
+    });
+    console.error("Full Error Object:", error);
     return (
       <main className="min-h-screen p-8 pb-24">
         <div className="max-w-7xl mx-auto">
@@ -159,7 +157,8 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           
           <div className="mt-8 text-center">
             <h1 className="text-2xl font-bold text-error">Error Loading Project</h1>
-            <p className="mt-4">There was an error loading the project. Please try again later.</p>
+            <p className="mt-4">There was an error loading the project. Please check the server logs.</p>
+            <p className="text-sm text-gray-500 mt-2">(This might be due to Row Level Security policies in Supabase).</p> 
           </div>
         </div>
       </main>
