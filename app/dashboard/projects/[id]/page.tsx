@@ -1,17 +1,27 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/libs/supabase/server";
+import { cookies } from "next/headers";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
+  const cookieStore = cookies();
+  const supabase = createClient();
+
+  // Check authentication first
+  const { data: { session }, error: authError } = await supabase.auth.getSession();
+  
+  if (authError || !session) {
+    console.error('Authentication error:', authError);
+    return notFound();
+  }
+
   if (!params.id) {
     console.error('No project ID provided');
     return notFound();
   }
-
-  const supabase = createClient();
 
   try {
     console.log('Fetching project with ID:', params.id);
