@@ -28,6 +28,10 @@ export default function AppCard({ app }: AppCardProps) {
     setFormattedDate(new Date(app.created_at).toLocaleDateString());
   }, [app.created_at]); // Re-run if created_at changes (though unlikely)
 
+  const handleCardClick = () => {
+    router.push(`/dashboard/projects/${app.id}`);
+  };
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -65,9 +69,9 @@ export default function AppCard({ app }: AppCardProps) {
         </svg>
       </button>
 
-      <Link 
-        href={`/dashboard/projects/${app.id}`}
-        className="block"
+      <div 
+        onClick={handleCardClick}
+        className="block cursor-pointer"
       >
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-semibold pr-8">{app.name}</h3>
@@ -92,7 +96,7 @@ export default function AppCard({ app }: AppCardProps) {
         <div className="mt-4 text-xs text-gray-400">
           Created {formattedDate ? formattedDate : '...'}
         </div>
-      </Link>
+      </div>
 
       {/* Confirmation Modal */}
       {showConfirm && (
