@@ -20,7 +20,7 @@ export default async function ProjectPage({
   const { data: project, error } = await supabase
     .from("projects")
     .select("*")
-    .eq("id", "92f7868b-df04-4d72-8036-2f8012486a57")
+    .eq("id", params.id)
     .single();
 
   if (error || !project) {
