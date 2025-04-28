@@ -1,6 +1,7 @@
 // app/dashboard/projects/layout.tsx
 import Link from "next/link";
 import { createClient } from "@/libs/supabase/server";
+import React from "react";
 
 export default async function ProjectsLayout({
   children,
