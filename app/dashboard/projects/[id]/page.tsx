@@ -15,13 +15,12 @@ export default async function ProjectPage({
 }) {
     
   const supabase = createClient();
-  const { id } = useParams();
 
   // Fetch the project details
   const { data: project, error } = await supabase
     .from("projects")
     .select("*")
-    .eq("id", id)
+    .eq("id", "92f7868b-df04-4d72-8036-2f8012486a57")
     .single();
 
   if (error || !project) {
