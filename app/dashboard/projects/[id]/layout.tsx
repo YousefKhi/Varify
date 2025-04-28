@@ -1,5 +1,6 @@
 import { createClient } from "@/libs/supabase/server";
 import { notFound } from "next/navigation";
+import React from "react";
 
 export default async function ProjectLayout({
   children,
