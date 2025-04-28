@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/libs/supabase/client";
+import { useRouter } from "next/navigation";
+import React from "react";
 
 // Define the props, including the project ID and selection handler
 type AppCardProps = {
