@@ -7,7 +7,7 @@ type StatsTabProps = {
   projectId: string;
 };
 
-export default function StatsTab({ projectId }: StatsTabProps) {
+const StatsTab = ({ projectId }: StatsTabProps) => {
   const [stats, setStats] = useState({
     totalViews: 0,
     totalConversions: 0,
@@ -155,4 +155,6 @@ export default function StatsTab({ projectId }: StatsTabProps) {
       </div>
     </div>
   );
-} 
+};
+
+export default StatsTab; 

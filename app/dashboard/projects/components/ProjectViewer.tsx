@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/libs/supabase/client";
 import TestsTab from "./TestsTab";
-import { StatsTab } from "./StatsTab";
+import StatsTab from "./StatsTab";
 
 type Project = {
   id: string;
