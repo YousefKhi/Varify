@@ -16,6 +16,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   console.log('project', project);
   console.log('error', error);
 
+
   if (!project || error) {
     notFound();
   }
