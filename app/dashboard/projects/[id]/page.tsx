@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import TestsList from "./components/TestsList";
 import ProjectStats from "./components/ProjectStats";
+import { useParams, useSearchParams } from "next/navigation";
 
 // 🔥 Tell Next.js to always render dynamically (not static build)
 export const dynamic = "force-dynamic";
@@ -10,15 +11,17 @@ export const dynamic = "force-dynamic";
 export default async function ProjectPage({
   params,
 }: {
-  params: { id: string };
+    params: { id: string };
 }) {
+    
   const supabase = createClient();
+  const { id } = useParams();
 
   // Fetch the project details
   const { data: project, error } = await supabase
     .from("projects")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !project) {

@@ -1,27 +1,17 @@
-import { ReactNode } from "react";
-import { redirect } from "next/navigation";
-import { createClient } from "@/libs/supabase/server";
-import config from "@/config";
-
-// This is a server-side component to ensure the user is logged in.
-// If not, it will redirect to the login page.
-// It's applied to all subpages of /dashboard in /app/dashboard/*** pages
-// You can also add custom static UI elements like a Navbar, Sidebar, Footer, etc..
-// See https://shipfa.st/docs/tutorials/private-page
-export default async function LayoutPrivate({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(config.auth.loginUrl);
-  }
-
-  return <>{children}</>;
+import {Metadata} from "next"
+import React from "react";
+export const metadata: Metadata = {
+    title: 'Projects',
+    description: 'Everything that made it out of my head'
 }
+const Layout = ({
+    children,
+                }: {
+    children: React.ReactNode}) => {
+    return (
+        <div className="flex gap-2 flex-col-reverse justify-end">
+            <div className=" flex-1">{children}</div>
+        </div>
+    )
+}
+export default Layout
