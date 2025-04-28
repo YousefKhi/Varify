@@ -69,9 +69,9 @@ export default function AppCard({ app }: AppCardProps) {
         </svg>
       </button>
 
-      <div 
-        onClick={handleCardClick}
-        className="block cursor-pointer"
+      <Link 
+        href={`/dashboard/projects/${app.id}`}
+        className="block"
       >
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-semibold pr-8">{app.name}</h3>
@@ -96,7 +96,7 @@ export default function AppCard({ app }: AppCardProps) {
         <div className="mt-4 text-xs text-gray-400">
           Created {formattedDate ? formattedDate : '...'}
         </div>
-      </div>
+      </Link>
 
       {/* Confirmation Modal */}
       {showConfirm && (

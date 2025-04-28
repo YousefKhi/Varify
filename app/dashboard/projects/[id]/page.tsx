@@ -1,60 +1,71 @@
-import { notFound } from "next/navigation";
 import { createClient } from "@/libs/supabase/server";
-import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import TestsList from "./components/TestsList";
+import ProjectStats from "./components/ProjectStats";
 
-// Force dynamic rendering
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function ProjectPage({ params }: { params: { id: string } }) {
-  const cookieStore = cookies();
+export default async function ProjectPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const supabase = createClient();
-
-  // Check authentication first
-  const { data: { session }, error: authError } = await supabase.auth.getSession();
   
-  if (authError || !session) {
-    console.error('Authentication error:', authError);
-    return notFound();
+  // Fetch project details
+  const { data: project, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", params.id)
+    .single();
+
+  if (error || !project) {
+    notFound();
   }
 
-  if (!params.id) {
-    console.error('No project ID provided');
-    return notFound();
-  }
-
-  try {
-    console.log('Fetching project with ID:', params.id);
-    
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('id, name, created_at, site_url')
-      .eq('id', params.id)
-      .single();
-
-    console.log('Query result:', { project, error });
-
-    if (error) {
-      console.error('Supabase error:', error);
-      throw error;
-    }
-
-    if (!project) {
-      console.error('Project not found for ID:', params.id);
-      return notFound();
-    }
-
-    return (
-      <main className="p-8">
-        <h1 className="text-3xl font-bold">{project.name}</h1>
-        <p className="mt-4 text-gray-500">Created: {new Date(project.created_at).toLocaleDateString()}</p>
-        <a href={project.site_url} target="_blank" className="text-blue-500 underline mt-2 block">
-          Visit Website
-        </a>
-      </main>
-    );
-  } catch (error) {
-    console.error('Error in ProjectPage:', error);
-    throw error;
-  }
-}
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">{project.name}</h1>
+        <Link href="/dashboard/projects" className="btn btn-ghost">
+          Back to Projects
+        </Link>
+      </div>
+      
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body">
+            <h2 className="card-title">Project Details</h2>
+            <div className="space-y-2">
+              <p><span className="font-medium">ID:</span> {project.id}</p>
+              <p><span className="font-medium">Name:</span> {project.name}</p>
+              {project.repo_url && (
+                <p>
+                  <span className="font-medium">Repository:</span>{" "}
+                  <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="link link-primary">
+                    {project.repo_url}
+                  </a>
+                </p>
+              )}
+              {project.site_url && (
+                <p>
+                  <span className="font-medium">Website:</span>{" "}
+                  <a href={project.site_url} target="_blank" rel="noopener noreferrer" className="link link-primary">
+                    {project.site_url}
+                  </a>
+                </p>
+              )}
+              <p><span className="font-medium">Created:</span> {new Date(project.created_at).toLocaleDateString()}</p>
+              {project.last_ping_at && (
+                <p><span className="font-medium">Last Activity:</span> {new Date(project.last_ping_at).toLocaleDateString()}</p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <ProjectStats projectId={project.id} />
+      </div>
+      
+      <TestsList projectId={project.id} />
+    </div>
+  );
+} 
