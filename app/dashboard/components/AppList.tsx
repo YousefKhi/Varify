@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/libs/supabase/client";
 import AppCard from "./AppCard";
-import ProjectViewer from "../projects/components/ProjectViewer";
+import ProjectViewer from "@/app/dashboard/components/ProjectViewer";
 import { useEffect } from "react";
 
 export default function AppList() {
