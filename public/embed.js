@@ -90,29 +90,32 @@
   // 🧪 Apply test to DOM
   const applyTest = (test, variant) => {
     try {
-      const element = document.querySelector(test.selector);
-      if (!element) {
+      const original = document.querySelector(test.selector);
+      if (!original) {
         console.warn(`[Varify] Element not found for selector: ${test.selector}`);
         return;
       }
-
-      // Apply text content
-      element.innerText = variant === 'A' ? test.variant_a : test.variant_b;
-
+  
+      // Replace full element
+      const replacementHTML = variant === 'A' ? test.variant_a : test.variant_b;
+      original.outerHTML = replacementHTML;
+  
       // Track view
       trackView(test.id, variant);
-
-      // Set up conversion tracking
-      if (test.goal === 'cta-click') {
-        element.addEventListener('click', () => {
+  
+      // Re-select the new element
+      const newElement = document.querySelector(test.selector);
+      if (test.goal === 'cta-click' && newElement) {
+        newElement.addEventListener('click', () => {
           trackConversion(test.id, variant, 'click');
         });
       }
-
+  
     } catch (err) {
       console.error('[Varify] Error applying test:', err);
     }
   };
+  
 
   // 🚀 Start the magic
   const initVarify = async () => {
@@ -124,7 +127,6 @@
 
     // Send a ping to confirm script loaded
     pingServer(projectId);
-
     // Fetch active tests for this project
     const tests = await fetchTests(projectId);
     if (!tests.length) return;

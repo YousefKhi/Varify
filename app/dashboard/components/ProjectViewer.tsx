@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/libs/supabase/client";
-import TestsTab from "./TestsTab";
-import StatsTab from "./StatsTab";
+import TestManager from "./TestManager";
 
 type Project = {
   id: string;
@@ -25,7 +24,7 @@ export default function ProjectViewer({ projectId, onClose }: ProjectViewerProps
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"details" | "tests" | "stats">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "tests" | "settings">("details");
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -108,10 +107,10 @@ export default function ProjectViewer({ projectId, onClose }: ProjectViewerProps
             A/B Tests
           </button>
           <button 
-            className={`tab ${activeTab === "stats" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("stats")}
+            className={`tab ${activeTab === "settings" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("settings")}
           >
-            Statistics
+            Settings
           </button>
         </div>
 
@@ -171,22 +170,80 @@ export default function ProjectViewer({ projectId, onClose }: ProjectViewerProps
               </div>
 
               <div className="flex gap-2 mt-6">
-                <button className="btn btn-primary">
-                  Edit Project
-                </button>
-                <button className="btn btn-error btn-outline">
-                  Delete
+                <button 
+                  onClick={() => setActiveTab("tests")}
+                  className="btn btn-primary"
+                >
+                  Manage A/B Tests
                 </button>
               </div>
             </div>
           )}
 
           {activeTab === "tests" && (
-            <TestsTab projectId={projectId} />
+            <TestManager projectId={projectId} />
           )}
 
-          {activeTab === "stats" && (
-            <StatsTab projectId={projectId} />
+          {activeTab === "settings" && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Project Settings</h3>
+              
+              <div className="form-control w-full max-w-md">
+                <label className="label">
+                  <span className="label-text font-medium">Project Name</span>
+                </label>
+                <input 
+                  type="text" 
+                  className="input input-bordered w-full" 
+                  defaultValue={project.name} 
+                  placeholder="Enter project name"
+                />
+              </div>
+              
+              <div className="form-control w-full max-w-md">
+                <label className="label">
+                  <span className="label-text font-medium">Description</span>
+                </label>
+                <textarea 
+                  className="textarea textarea-bordered h-24" 
+                  defaultValue={project.description || ""}
+                  placeholder="Brief description of your project"
+                ></textarea>
+              </div>
+              
+              <div className="form-control w-full max-w-md">
+                <label className="label">
+                  <span className="label-text font-medium">Website URL</span>
+                </label>
+                <input 
+                  type="url" 
+                  className="input input-bordered w-full" 
+                  defaultValue={project.site_url || ""}
+                  placeholder="https://example.com"
+                />
+              </div>
+              
+              <div className="form-control w-full max-w-md">
+                <label className="label">
+                  <span className="label-text font-medium">Repository URL</span>
+                </label>
+                <input 
+                  type="url" 
+                  className="input input-bordered w-full" 
+                  defaultValue={project.repo_url || ""}
+                  placeholder="https://github.com/username/repo"
+                />
+              </div>
+              
+              <div className="flex gap-2 mt-8">
+                <button className="btn btn-primary">
+                  Save Changes
+                </button>
+                <button className="btn btn-error btn-outline">
+                  Delete Project
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
