@@ -5,6 +5,7 @@ import { createClient } from "@/libs/supabase/client";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import CodePreview from "./CodePreview";
+import React from "react";
 
 type TestCreatorProps = {
   projectId: string;
