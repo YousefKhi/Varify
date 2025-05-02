@@ -41,24 +41,18 @@ export default function AddSiteForm() {
       try {
         const supabase = createClient();
         
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        // Get current session with provider token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         
-        // Check if user has GitHub token
-        const { data, error } = await supabase
-          .from('github_tokens')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-          
-        if (error) throw error;
+        // Check if user has GitHub token in session
+        const ghToken = session.provider_token;
         
-        setIsGithubAuthenticated(!!data);
+        setIsGithubAuthenticated(!!ghToken);
         
         // If authenticated, fetch repos
-        if (data) {
-          fetchGithubRepos();
+        if (ghToken) {
+          fetchGithubRepos(ghToken);
         }
       } catch (error) {
         console.error("Error checking GitHub auth:", error);
@@ -72,10 +66,19 @@ export default function AddSiteForm() {
   }, [mode]);
   
   // Fetch GitHub repos
-  const fetchGithubRepos = async () => {
+  const fetchGithubRepos = async (token?: string) => {
     setLoadingRepos(true);
     try {
-      const response = await fetch('/api/github/repos');
+      // Pass the token in the request headers if available
+      const headers: HeadersInit = { 
+        'Content-Type': 'application/json' 
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/github/repos', { headers });
       if (!response.ok) {
         throw new Error('Failed to fetch repos');
       }
@@ -479,7 +482,14 @@ export default function AddSiteForm() {
                 We couldn&apos;t find any repositories in your GitHub account.
               </p>
               <button
-                onClick={fetchGithubRepos}
+                onClick={() => {
+                  const checkSessionAndRefresh = async () => {
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    fetchGithubRepos(session?.provider_token);
+                  };
+                  checkSessionAndRefresh();
+                }}
                 className="btn btn-outline mt-4"
               >
                 Refresh Repositories
