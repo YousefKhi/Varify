@@ -70,7 +70,7 @@ export default function AddSiteForm() {
     setLoadingRepos(true);
     try {
       // Pass the token in the request headers if available
-      const headers: HeadersInit = { 
+      const headers: Record<string, string> = { 
         'Content-Type': 'application/json' 
       };
       
