@@ -32,7 +32,7 @@ export default function AddSitePage() {
       </div>
 
       <div className="max-w-5xl mx-auto w-full py-8 px-4 flex-1">
-        <h1 className="text-2xl font-bold mb-8 text-center">Add a new website</h1>
+        <h1 className="text-2xl font-bold mb-8 text-center">Create New App</h1>
         
         <Suspense>
           <div className="mt-8 max-w-3xl mx-auto">
