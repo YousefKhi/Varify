@@ -101,7 +101,7 @@ export default function EmbedCodeModal({ projectId, onClose }: EmbedCodeModalPro
           <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-4 rounded-md text-sm">
             <div className="flex">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-5 h-5 mr-2 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor"></path></svg>
-              <span>The script is lightweight (less than 10KB) and won't impact page load performance.</span>
+              <span>The script is lightweight (less than 10KB) and wont impact page load performance.</span>
             </div>
           </div>
         </div>

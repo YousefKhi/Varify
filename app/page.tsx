@@ -52,7 +52,7 @@ export default function Page() {
               exit={{ y: "-120%" }}
               staggerDuration={0.02}
               splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-              transition={{ type: "tween", duration: 0.5, ease: "easeInOut" }}
+              transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
               rotationInterval={3000}
             />
           </div>

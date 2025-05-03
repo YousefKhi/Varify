@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/libs/supabase/client";
-import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import CodePreview from "./CodePreview";
 import React from "react";
@@ -57,7 +56,6 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
   const [testData, setTestData] = useState<TestData>(INITIAL_TEST_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentPreview, setCurrentPreview] = useState<"a" | "b">("a");
-  const [existingTest, setExistingTest] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(!!testId);
   const [project, setProject] = useState<Project | null>(null);
   
@@ -69,8 +67,6 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
   const [fileContent, setFileContent] = useState<string>("");
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [githubStep, setGithubStep] = useState<"repo" | "file" | "section" | "variant" | "details">("repo");
-  
-  const router = useRouter();
 
   // Fetch project details to check if repo_url exists
   useEffect(() => {
@@ -93,8 +89,8 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
         if (!testId && projectData.repo_url) {
           setCreationMethod("github");
   
-          // Parse repo URL
-          const match = projectData.repo_url.match(/github\.com\/([^\/]+)\/([^\/]+)(\.git)?/);
+          // Parse repo URL - Fix regex escape characters
+          const match = projectData.repo_url.match(/github\.com\/([^/]+)\/([^/]+)(\.git)?/);
           if (!match) throw new Error("Invalid GitHub repo URL");
           console.log(match);
   
@@ -141,7 +137,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
     };
   
     fetchProject();
-  }, [projectId, testId]);
+  }, [projectId, testId, selectedRepo]); // Add selectedRepo to dependency array
   
 
   // If testId is provided, fetch the existing test data
@@ -172,8 +168,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
             throw variantError;
           }
           
-          setExistingTest(data);
-          
+          // Store test data without creating unused variable
           setTestData({
             name: data.name || "",
             selector: data.selector || "",
@@ -217,48 +212,6 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
     }));
   };
   
-  const openGitHubRepo = () => {
-    if (project?.repo_url) {
-      window.open(project.repo_url, '_blank');
-      toast.success("Select a file in the repository to test");
-    }
-  };
-  
-  const handleFileSelection = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedFile) {
-      toast.error("Please enter a file path");
-      return;
-    }
-    
-    // Update the test data with the file path
-    setTestData(prev => ({
-      ...prev, 
-      file_path: selectedFile
-    }));
-    
-    toast.success("File selected! Now highlight the section you want to test");
-  };
-  
-  const handleSectionSelection = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedSection) {
-      toast.error("Please enter the code section to test");
-      return;
-    }
-    
-    // Update the variant code with the selected section
-    setTestData(prev => ({
-      ...prev,
-      variant_a_code: selectedSection,
-      variant_b_code: selectedSection
-    }));
-    
-    toast.success("Section selected! Now customize variant B with your changes");
-  };
-
   const handleFileSelect = async (path: string) => {
     setSelectedFile(path);
     setTestData(prev => ({
