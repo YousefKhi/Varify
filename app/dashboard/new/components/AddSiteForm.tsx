@@ -112,34 +112,32 @@ export default function AddSiteForm() {
         throw new Error("User not authenticated");
       }
 
-      // Create project from GitHub repo
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          githubRepo: repo.full_name,
+      // Create project directly with Supabase
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
           name: repo.name,
-          description: repo.description || `Project imported from ${repo.full_name}`,
           repo_url: repo.html_url,
-          user_id: user.id
-        }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create project');
+          user_id: user.id,
+          site_url: null,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
       }
       
-      const data = await response.json();
-      
       toast.success("Project created successfully!");
-      router.push(`/dashboard/projects/${data.id}`);
       
-    } catch (error) {
+      // Return to dashboard with the newly created project
+      router.push(`/dashboard`);
+      
+    } catch (error: any) {
       console.error("Error creating project from GitHub:", error);
-      toast.error("Failed to create project from GitHub repository");
+      toast.error(`Failed to create project: ${error.message || "Unknown error"}`);
     } finally {
       setIsSubmitting(false);
     }

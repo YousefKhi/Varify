@@ -181,19 +181,23 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="skeleton h-10 w-1/3"></div>
-        <div className="skeleton h-32 w-full"></div>
-        <div className="skeleton h-32 w-full"></div>
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-800 rounded-md w-1/3 animate-pulse"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-800 rounded-md animate-pulse"></div>
+          <div className="h-24 bg-gray-800 rounded-md animate-pulse"></div>
+          <div className="h-24 bg-gray-800 rounded-md animate-pulse"></div>
+        </div>
+        <div className="h-64 bg-gray-800 rounded-md animate-pulse"></div>
       </div>
     );
   }
 
   if (error || !test) {
     return (
-      <div className="alert alert-error">
+      <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-md flex items-center justify-between">
         <span>{error || "Test not found"}</span>
-        <button onClick={onBack} className="btn btn-sm">Back</button>
+        <button onClick={onBack} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-md text-sm transition-colors">Back</button>
       </div>
     );
   }
@@ -203,19 +207,19 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold">{test.name}</h2>
-          <p className="text-sm text-gray-500">Test ID: {test.id}</p>
+          <h2 className="text-xl font-medium text-white">{test.name}</h2>
+          <p className="text-sm text-gray-400">Test ID: {test.id}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex space-x-3">
           <button
             onClick={onBack}
-            className="btn btn-ghost"
+            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
           >
             Back to Tests
           </button>
           <button
             onClick={onEdit}
-            className="btn btn-outline"
+            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
           >
             Edit Test
           </button>
@@ -223,249 +227,228 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
       </div>
       
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title text-xl">Total Views</h3>
-            <div className="stat-value text-3xl">{stats.views.toLocaleString()}</div>
-            <p className="text-sm text-gray-500">Total impressions of this test</p>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[#121212] border border-gray-800 rounded-md p-5">
+          <h3 className="text-sm font-medium text-gray-400 mb-1">Total Views</h3>
+          <div className="text-2xl font-medium text-white">{stats.views.toLocaleString()}</div>
+          <p className="text-xs text-gray-500 mt-1">Total impressions of this test</p>
         </div>
         
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title text-xl">Conversions</h3>
-            <div className="stat-value text-3xl">{stats.conversions.toLocaleString()}</div>
-            <p className="text-sm text-gray-500">Total goal completions</p>
-          </div>
+        <div className="bg-[#121212] border border-gray-800 rounded-md p-5">
+          <h3 className="text-sm font-medium text-gray-400 mb-1">Conversions</h3>
+          <div className="text-2xl font-medium text-white">{stats.conversions.toLocaleString()}</div>
+          <p className="text-xs text-gray-500 mt-1">Total goal completions</p>
         </div>
         
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title text-xl">Conversion Rate</h3>
-            <div className="stat-value text-3xl">{stats.conversionRate.toFixed(2)}%</div>
-            <p className="text-sm text-gray-500">Percentage of views that convert</p>
-          </div>
+        <div className="bg-[#121212] border border-gray-800 rounded-md p-5">
+          <h3 className="text-sm font-medium text-gray-400 mb-1">Conversion Rate</h3>
+          <div className="text-2xl font-medium text-white">{stats.conversionRate.toFixed(2)}%</div>
+          <p className="text-xs text-gray-500 mt-1">Percentage of views that convert</p>
         </div>
       </div>
       
       {/* Test Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title">Test Configuration</h3>
-            <div className="overflow-x-auto">
-              <table className="table w-full">
-                <tbody>
-                  <tr>
-                    <td className="font-medium">Status</td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <div className={`badge ${test.active ? 'badge-success' : 'badge-ghost'}`}>
-                          {test.active ? 'Active' : 'Inactive'}
-                        </div>
-                        <button 
-                          onClick={handleToggleStatus}
-                          className="btn btn-xs btn-ghost"
-                        >
-                          {test.active ? 'Deactivate' : 'Activate'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium">Element Selector</td>
-                    <td>
-                      <code className="bg-base-200 p-1 rounded text-xs">
-                        {test.selector}
-                      </code>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium">Goal Type</td>
-                    <td className="capitalize">{test.goal_type}</td>
-                  </tr>
-                  {test.goal_type === "click" && test.goal_selector && (
-                    <tr>
-                      <td className="font-medium">Goal Selector</td>
-                      <td>
-                        <code className="bg-base-200 p-1 rounded text-xs">
-                          {test.goal_selector}
-                        </code>
-                      </td>
-                    </tr>
-                  )}
-                  <tr>
-                    <td className="font-medium">Traffic Split</td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-base-200 rounded-full">
-                          <div 
-                            className="h-full bg-primary rounded-full" 
-                            style={{ width: `${test.split}%` }}
-                          />
-                        </div>
-                        <span>
-                          {100 - test.split}% A / {test.split}% B
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium">Created</td>
-                    <td>{new Date(test.created_at).toLocaleString()}</td>
-                  </tr>
-                  {test.updated_at && (
-                    <tr>
-                      <td className="font-medium">Last Updated</td>
-                      <td>{new Date(test.updated_at).toLocaleString()}</td>
-                    </tr>
-                  )}
-                  {test.file_path && (
-                    <tr>
-                      <td className="font-medium">File Path</td>
-                      <td>{test.file_path}</td>
-                    </tr>
-                  )}
-                  {test.branch_name && (
-                    <tr>
-                      <td className="font-medium">Branch</td>
-                      <td>{test.branch_name}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+          <h3 className="text-md font-medium text-white mb-4">Test Configuration</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between py-2 border-b border-gray-800">
+              <span className="text-sm text-gray-400">Status</span>
+              <div className="flex items-center gap-3">
+                <div className={`flex items-center gap-1.5 ${test.active ? 'text-[#3ECF8E]' : 'text-gray-500'}`}>
+                  <span className={`inline-block w-2 h-2 rounded-full ${test.active ? 'bg-[#3ECF8E]' : 'bg-gray-500'}`}></span>
+                  <span className="text-sm">{test.active ? 'Active' : 'Inactive'}</span>
+                </div>
+                <button 
+                  onClick={handleToggleStatus}
+                  className="text-xs text-gray-400 hover:text-white px-2 py-1 hover:bg-gray-800 rounded transition-colors"
+                >
+                  {test.active ? 'Deactivate' : 'Activate'}
+                </button>
+              </div>
             </div>
             
-            <div className="card-actions justify-end mt-4">
-              <button
-                onClick={onDelete}
-                className="btn btn-error btn-sm"
-              >
-                Delete Test
-              </button>
+            <div className="flex justify-between py-2 border-b border-gray-800">
+              <span className="text-sm text-gray-400">Element Selector</span>
+              <code className="text-xs px-2 py-1 bg-black/30 rounded text-gray-300">
+                {test.selector}
+              </code>
             </div>
+            
+            <div className="flex justify-between py-2 border-b border-gray-800">
+              <span className="text-sm text-gray-400">Goal Type</span>
+              <span className="text-sm text-white capitalize">{test.goal_type}</span>
+            </div>
+            
+            {test.goal_type === "click" && test.goal_selector && (
+              <div className="flex justify-between py-2 border-b border-gray-800">
+                <span className="text-sm text-gray-400">Goal Selector</span>
+                <code className="text-xs px-2 py-1 bg-black/30 rounded text-gray-300">
+                  {test.goal_selector}
+                </code>
+              </div>
+            )}
+            
+            <div className="flex justify-between py-2 border-b border-gray-800">
+              <span className="text-sm text-gray-400">Traffic Split</span>
+              <div className="flex items-center gap-2">
+                <div className="w-20 h-1.5 bg-gray-800 rounded-full">
+                  <div 
+                    className="h-full bg-[#3ECF8E] rounded-full" 
+                    style={{ width: `${test.split}%` }}
+                  />
+                </div>
+                <span className="text-xs text-white">
+                  {100 - test.split}% A / {test.split}% B
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex justify-between py-2 border-b border-gray-800">
+              <span className="text-sm text-gray-400">Created</span>
+              <span className="text-sm text-white">{new Date(test.created_at).toLocaleString()}</span>
+            </div>
+            
+            {test.updated_at && (
+              <div className="flex justify-between py-2 border-b border-gray-800">
+                <span className="text-sm text-gray-400">Last Updated</span>
+                <span className="text-sm text-white">{new Date(test.updated_at).toLocaleString()}</span>
+              </div>
+            )}
+            
+            {test.file_path && (
+              <div className="flex justify-between py-2 border-b border-gray-800">
+                <span className="text-sm text-gray-400">File Path</span>
+                <span className="text-sm text-white">{test.file_path}</span>
+              </div>
+            )}
+            
+            {test.branch_name && (
+              <div className="flex justify-between py-2 border-b border-gray-800">
+                <span className="text-sm text-gray-400">Branch</span>
+                <span className="text-sm text-white">{test.branch_name}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={onDelete}
+              className="px-3 py-1.5 bg-transparent border border-red-500 text-red-500 text-sm rounded-md hover:bg-red-500/10 transition-colors"
+            >
+              Delete Test
+            </button>
           </div>
         </div>
         
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title">Performance Comparison</h3>
-            
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="bg-base-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Variant A (Original)</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span>Views</span>
-                    <span>{stats.variantA.views.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Conversions</span>
-                    <span>{stats.variantA.conversions.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between font-medium">
-                    <span>Conversion Rate</span>
-                    <span>{stats.variantA.conversionRate.toFixed(2)}%</span>
-                  </div>
+        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+          <h3 className="text-md font-medium text-white mb-4">Performance Comparison</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-900 border border-gray-800 p-4 rounded-md">
+              <h4 className="text-sm font-medium text-white mb-3">Variant A (Original)</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-400">Views</span>
+                  <span className="text-xs text-white">{stats.variantA.views.toLocaleString()}</span>
                 </div>
-              </div>
-              
-              <div className="bg-base-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Variant B (Test)</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span>Views</span>
-                    <span>{stats.variantB.views.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Conversions</span>
-                    <span>{stats.variantB.conversions.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between font-medium">
-                    <span>Conversion Rate</span>
-                    <span>{stats.variantB.conversionRate.toFixed(2)}%</span>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-400">Conversions</span>
+                  <span className="text-xs text-white">{stats.variantA.conversions.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-400">Conversion Rate</span>
+                  <span className="text-xs text-white font-medium">{stats.variantA.conversionRate.toFixed(2)}%</span>
                 </div>
               </div>
             </div>
             
-            <div className="mt-6">
-              <h4 className="font-medium mb-3">Winner Determination</h4>
-              {stats.views < 100 ? (
-                <div className="alert alert-info text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span>Need more data to determine a winner (minimum 100 views per variant)</span>
+            <div className="bg-gray-900 border border-gray-800 p-4 rounded-md">
+              <h4 className="text-sm font-medium text-white mb-3">Variant B (Test)</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-400">Views</span>
+                  <span className="text-xs text-white">{stats.variantB.views.toLocaleString()}</span>
                 </div>
-              ) : stats.variantB.conversionRate > stats.variantA.conversionRate ? (
-                <div className="alert alert-success text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <div>
-                    <span className="font-medium">Variant B is winning!</span>
-                    <p className="text-xs mt-1">
-                      {((stats.variantB.conversionRate - stats.variantA.conversionRate) / stats.variantA.conversionRate * 100).toFixed(1)}% improvement over original
-                    </p>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-400">Conversions</span>
+                  <span className="text-xs text-white">{stats.variantB.conversions.toLocaleString()}</span>
                 </div>
-              ) : stats.variantA.conversionRate > stats.variantB.conversionRate ? (
-                <div className="alert alert-warning text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  <div>
-                    <span className="font-medium">Original is better</span>
-                    <p className="text-xs mt-1">
-                      {((stats.variantA.conversionRate - stats.variantB.conversionRate) / stats.variantB.conversionRate * 100).toFixed(1)}% better than Variant B
-                    </p>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-400">Conversion Rate</span>
+                  <span className="text-xs text-white font-medium">{stats.variantB.conversionRate.toFixed(2)}%</span>
                 </div>
-              ) : (
-                <div className="alert text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span>Both variants are performing equally</span>
-                </div>
-              )}
+              </div>
             </div>
+          </div>
+          
+          <div className="mt-6">
+            <h4 className="text-sm font-medium text-white mb-3">Winner Determination</h4>
+            {stats.views < 100 ? (
+              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-3 rounded-md text-xs">
+                Need more data to determine a winner (minimum 100 views per variant)
+              </div>
+            ) : stats.variantB.conversionRate > stats.variantA.conversionRate ? (
+              <div className="bg-[#3ECF8E]/10 border border-[#3ECF8E]/20 text-[#3ECF8E] p-3 rounded-md">
+                <span className="text-sm font-medium">Variant B is winning!</span>
+                <p className="text-xs mt-1">
+                  {((stats.variantB.conversionRate - stats.variantA.conversionRate) / stats.variantA.conversionRate * 100).toFixed(1)}% improvement over original
+                </p>
+              </div>
+            ) : stats.variantA.conversionRate > stats.variantB.conversionRate ? (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-3 rounded-md">
+                <span className="text-sm font-medium">Original is better</span>
+                <p className="text-xs mt-1">
+                  {((stats.variantA.conversionRate - stats.variantB.conversionRate) / stats.variantB.conversionRate * 100).toFixed(1)}% better than Variant B
+                </p>
+              </div>
+            ) : (
+              <div className="bg-gray-800 border border-gray-700 text-gray-400 p-3 rounded-md text-xs">
+                Both variants are performing equally
+              </div>
+            )}
           </div>
         </div>
       </div>
       
       {/* Variant Preview */}
       {variant && (
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title">Variant Preview</h3>
-            
-            <div className="tabs tabs-boxed mb-4">
+        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+          <h3 className="text-md font-medium text-white mb-4">Variant Preview</h3>
+          
+          <div className="border-b border-gray-800 mb-6">
+            <div className="flex space-x-6">
               <button
                 type="button"
-                className={`tab ${activePreview === "a" ? "tab-active" : ""}`}
+                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "a" ? "text-white border-b-2 border-[#3ECF8E]" : "text-gray-400 hover:text-white"}`}
                 onClick={() => setActivePreview("a")}
               >
                 Variant A (Original)
               </button>
               <button
                 type="button"
-                className={`tab ${activePreview === "b" ? "tab-active" : ""}`}
+                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "b" ? "text-white border-b-2 border-[#3ECF8E]" : "text-gray-400 hover:text-white"}`}
                 onClick={() => setActivePreview("b")}
               >
                 Variant B (Test)
               </button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="font-medium mb-2">HTML Code</div>
-                <div className="bg-base-200 p-3 rounded-lg">
-                  <pre className="text-xs overflow-auto max-h-48 whitespace-pre-wrap">
-                    {activePreview === "a" ? variant.variant_a_code : variant.variant_b_code}
-                  </pre>
-                </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div className="text-sm font-medium text-gray-400 mb-2">HTML Code</div>
+              <div className="bg-gray-900 border border-gray-800 p-3 rounded-md">
+                <pre className="text-xs overflow-auto max-h-64 whitespace-pre-wrap text-gray-300">
+                  {activePreview === "a" ? variant.variant_a_code : variant.variant_b_code}
+                </pre>
               </div>
-              
-              <div>
-                <div className="font-medium mb-2">Visual Preview</div>
-                <div className="bg-white border rounded-lg overflow-hidden h-48">
-                  <CodePreview html={activePreview === "a" ? variant.variant_a_code : variant.variant_b_code} />
-                </div>
+            </div>
+            
+            <div>
+              <div className="text-sm font-medium text-gray-400 mb-2">Visual Preview</div>
+              <div className="border border-gray-800 rounded-md overflow-hidden h-64 bg-white">
+                <CodePreview html={activePreview === "a" ? variant.variant_a_code : variant.variant_b_code} />
               </div>
             </div>
           </div>

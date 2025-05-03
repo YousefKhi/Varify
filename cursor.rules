@@ -1,0 +1,35 @@
+# 🔧 General Design Rules
+The background color should always be #121212 (dark).
+The primary accent color should be #3ECF8E.
+All text should be white (#FFFFFF) for readability and contrast.
+
+# 🎨 Styling
+Use TailwindCSS for all styling.
+Avoid inline styles unless absolutely necessary.
+Ensure sufficient padding, spacing, and contrast in all UI components.
+Prioritize visual hierarchy — headers should stand out clearly.
+
+# 📐 Layout & Structure
+Use full screen sections when applicable.
+Make components responsive and mobile-friendly.
+
+# 🧠 Code Quality
+If a file exceeds 600 lines of code, refactor it by extracting reusable components.
+Prioritize readability and maintainability over cleverness.
+Use meaningful names for components, functions, and variables.
+Avoid deeply nested JSX — break into smaller components as needed.
+
+# 📁 File Structure
+Place all React components in `/components`.
+Pages should be in `/app`
+Use PascalCase for component filenames and camelCase for variables/functions.
+
+# 💡 Best Practices
+Use functional components with hooks.
+Use async/await instead of .then().
+Use TypeScript and include type annotations where possible.
+Prefer client-side caching where appropriate, and avoid unnecessary re-renders.
+
+# 📊 Analytics & SEO
+Ensure pages follow basic SEO structure (title, meta tags).
+Maintain accessibility standards (aria-labels, keyboard nav, etc.).
