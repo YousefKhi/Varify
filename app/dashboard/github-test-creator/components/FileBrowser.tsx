@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/libs/supabase/client";
+import React from "react";
 
 type TreeItem = {
   path: string;
@@ -158,7 +159,7 @@ export default function FileBrowser({ repo, onSelectFile }: FileBrowserProps) {
     });
   };
   
-  const renderTree = (node: TreeNode, level = 0): JSX.Element => {
+  const renderTree = (node: TreeNode, level = 0): React.ReactElement => {
     const isExpanded = expandedFolders.has(node.path);
     
     if (node.type === "blob") {
