@@ -80,11 +80,6 @@ export default function Page() {
           </form>
         </div>
         
-        <div className="mt-4 flex items-center justify-center gap-2 transform-gpu">
-          <div className="w-2 h-2 rounded-full bg-[#3ECF8E]"></div>
-          <p className="text-sm">Join <span className="font-semibold">250+</span> early testers of <span className="font-semibold">Varify</span></p>
-        </div>
-        
         {/* Feature cards with hover effects */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full">
           <div className="group flex flex-col items-center p-6 bg-[#151515] rounded-xl border border-gray-800 hover:border-[#3ECF8E]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#3ECF8E]/10">
@@ -146,10 +141,7 @@ export default function Page() {
             </div>
           </div>
         </div>
-        
-        <div className="mt-16 text-gray-400 hover:text-gray-300 transition-colors">
-          <p className="text-sm">Launching Q2 2024</p>
-        </div>
+       
       </main>
     </div>
   );
