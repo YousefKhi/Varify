@@ -97,7 +97,7 @@
       }
   
       // Replace full element
-      const replacementHTML = variant === 'A' ? test.variant_a : test.variant_b;
+      const replacementHTML = variant === 'A' ? test.variant_a_code : test.variant_b_code;
       original.outerHTML = replacementHTML;
   
       // Track view

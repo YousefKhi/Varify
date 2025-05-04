@@ -47,7 +47,7 @@ export default function Page() {
             It&apos;s not your product,
           </span>
           <div className="flex flex-wrap justify-center items-center gap-2">
-            <span className="font-inter text-white">
+            <span data-varify-test-id="test-1" className="font-inter text-white">
               It&apos;s your
             </span>
             <RotatingText
