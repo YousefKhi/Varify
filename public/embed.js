@@ -78,7 +78,7 @@
     const selector = test.selector;
     waitForElement(selector, original => {
       const replacementHTML =
-        variant === 'A' ? test.variant_a : test.variant_b;
+        variant === 'A' ? test.variant_a_code : test.variant_b_code;
       original.outerHTML = replacementHTML;
       trackView(test.id, variant);
       // Conversion tracking on CTA click
