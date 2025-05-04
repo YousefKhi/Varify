@@ -1,16 +1,13 @@
-(function () {
-  // Configuration
-  // FOR LOCAL TESTING ONLY:
+(function() {
   const API_BASE_URL = 'https://varify-sepia.vercel.app/api';
-  // REMEMBER TO CHANGE BACK TO YOUR PRODUCTION URL BEFORE DEPLOYING!
-  // const API_BASE_URL = 'https://abfast.dev/api'; // Example production URL
 
-  // 🔍 Get project ID from script tag
+  // ▶️ Grab your project ID from the <script> tag
   const getProjectId = () => {
     const scripts = document.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-      const script = scripts[i];
-      const projectId = script.getAttribute('data-project') || script.getAttribute('data-project-id');
+    for (const script of scripts) {
+      const projectId =
+        script.getAttribute('data-project') ||
+        script.getAttribute('data-project-id');
       if (projectId && script.src.includes('embed.js')) {
         return projectId;
       }
@@ -19,20 +16,33 @@
     return null;
   };
 
-  // 🎲 Variant helpers
-  const getRandomVariant = (split = 50) => Math.random() * 100 < split ? 'A' : 'B';
-  const getStoredVariant = (testId) => localStorage.getItem(`varify-${testId}`);
+  // ▶️ A/B variant helpers
+  const getRandomVariant = (split = 50) =>
+    Math.random() * 100 < split ? 'A' : 'B';
+  const getStoredVariant = testId =>
+    localStorage.getItem(`varify-${testId}`);
   const storeVariant = (testId, variant) => {
     localStorage.setItem(`varify-${testId}`, variant);
     return variant;
   };
+  const assignVariant = test =>
+    getStoredVariant(test.id) || storeVariant(test.id, getRandomVariant(test.split));
 
-  const assignVariant = (test) => {
-    return getStoredVariant(test.id) || storeVariant(test.id, getRandomVariant(test.split));
+  // ▶️ Wait until an element appears (handles React/Next.js timing)
+  const waitForElement = (selector, callback) => {
+    const element = document.querySelector(selector);
+    if (element) return callback(element);
+    const observer = new MutationObserver((mutations, obs) => {
+      if (document.querySelector(selector)) {
+        obs.disconnect();
+        callback(document.querySelector(selector));
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
   };
 
-  // 📡 API requests
-  const fetchTests = async (projectId) => {
+  // ▶️ Fetch your tests from the API
+  const fetchTests = async projectId => {
     try {
       const res = await fetch(`${API_BASE_URL}/tests?projectId=${projectId}`);
       if (!res.ok) throw new Error('Failed to fetch tests');
@@ -43,107 +53,69 @@
     }
   };
 
+  // ▶️ Tracking helpers
   const trackView = (testId, variant) => {
-    navigator.sendBeacon(`${API_BASE_URL}/view`, JSON.stringify({
-      testId,
-      variant,
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent
-    }));
+    navigator.sendBeacon(
+      `${API_BASE_URL}/view`,
+      JSON.stringify({ testId, variant, timestamp: Date.now(), userAgent: navigator.userAgent })
+    );
   };
-
   const trackConversion = async (testId, variant, event) => {
     try {
       await fetch(`${API_BASE_URL}/conversion`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          testId,
-          variant,
-          event,
-          timestamp: Date.now()
-        }),
-        keepalive: true // Use beacon if possible
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testId, variant, event, timestamp: Date.now() }),
+        keepalive: true
       });
     } catch (error) {
       console.warn('[Varify] Failed to track conversion:', error);
     }
   };
 
-  const pingServer = async (projectId) => {
-    try {
-      await fetch(`${API_BASE_URL}/ping-script`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ projectId }),
-        keepalive: true // Use beacon if possible
-      });
-    } catch (error) {
-      console.warn('[Varify] Failed to ping server:', error);
-    }
-  };
-
-  // 🧪 Apply test to DOM
+  // ▶️ Apply a single test when ready
   const applyTest = (test, variant) => {
-    try {
-      const original = document.querySelector(test.selector);
-      if (!original) {
-        console.warn(`[Varify] Element not found for selector: ${test.selector}`);
-        return;
-      }
-  
-      // Replace full element
-      const replacementHTML = variant === 'A' ? test.variant_a_code : test.variant_b_code;
+    const selector = test.selector;
+    waitForElement(selector, original => {
+      const replacementHTML =
+        variant === 'A' ? test.variant_a : test.variant_b;
       original.outerHTML = replacementHTML;
-  
-      // Track view
       trackView(test.id, variant);
-  
-      // Re-select the new element
-      const newElement = document.querySelector(test.selector);
-      if (test.goal === 'cta-click' && newElement) {
-        newElement.addEventListener('click', () => {
-          trackConversion(test.id, variant, 'click');
-        });
+      // Conversion tracking on CTA click
+      if (test.goal === 'cta-click') {
+        const newEl = document.querySelector(selector);
+        if (newEl) {
+          newEl.addEventListener('click', () =>
+            trackConversion(test.id, variant, 'click')
+          );
+        }
       }
-  
-    } catch (err) {
-      console.error('[Varify] Error applying test:', err);
-    }
+    });
   };
-  
 
-  // 🚀 Start the magic
+  // ▶️ Initialize everything
   const initVarify = async () => {
     const projectId = getProjectId();
-    if (!projectId) {
-      console.error('[Varify] No project ID found. Add data-project attribute to the script tag.');
-      return;
-    }
+    if (!projectId) return;
 
-    // Send a ping to confirm script loaded
-    pingServer(projectId);
-    // Fetch active tests for this project
+    // ping server
+    fetch(`${API_BASE_URL}/ping-script`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId }),
+      keepalive: true
+    }).catch(() => {});
+
     const tests = await fetchTests(projectId);
-    if (!tests.length) return;
-
-    const runTests = () => {
-      tests.forEach(test => {
-        const variant = assignVariant(test);
-        applyTest(test, variant);
-      });
-    };
-
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      runTests();
-    } else {
-      document.addEventListener('DOMContentLoaded', runTests);
-    }
+    tests.forEach(test => {
+      const variant = assignVariant(test);
+      applyTest(test, variant);
+    });
   };
 
-  initVarify();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVarify);
+  } else {
+    initVarify();
+  }
 })();
