@@ -176,7 +176,7 @@ export default function AppCard({ app, onSelect, isSelected }: AppCardProps) {
               <h3 className="text-lg font-medium text-white">Delete Project</h3>
             </div>
             <p className="text-sm mb-5 text-gray-300">
-              Are you sure you want to delete "{app.name}"? This action cannot be undone.
+              Are you sure you want to delete {app.name}? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button 

@@ -827,7 +827,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         required
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        This identifies the element to be tested - we've automatically detected this for you.
+                        This identifies the element to be tested - we have automatically detected this for you.
                       </p>
                     </div>
                   </div>
