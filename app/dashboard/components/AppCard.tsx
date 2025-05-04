@@ -114,46 +114,52 @@ export default function AppCard({ app, onSelect, isSelected }: AppCardProps) {
 
   return (
     <div 
-      className={`bg-[#121212] border border-gray-800 rounded-md p-5 relative group cursor-pointer transition-all ${
-        isSelected ? "ring-2 ring-[#3ECF8E]" : "hover:border-gray-700"
-      }`}
+      className={`bg-[#1f1f1f] border transition-all duration-200 rounded-lg p-5 relative cursor-pointer
+        ${isSelected 
+          ? "ring-1 ring-[#39a276] border-[#39a276]" 
+          : "border-[#444444] hover:border-[#39a276]"}`}
       onClick={handleCardClick}
     >
-      {/* Status Indicator and Logo */}
-      <div className="absolute top-5 right-5 flex items-center">
-        <span className="flex h-2.5 w-2.5 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3ECF8E] opacity-50"></span>
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#3ECF8E]"></span>
-        </span>
-      </div>
-
-      {/* Project Info */}
-      <div className="mb-4">
-        <h3 className="text-white font-medium mb-1.5">{app.name}</h3>
-        <div className="text-gray-500 text-sm truncate">
-          {domain}
+      {/* App Details */}
+      <div className="flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-white text-lg font-medium truncate">{app.name}</h3>
+          {stats.activeTests > 0 && (
+            <span className="inline-flex h-2 w-2 rounded-full bg-[#39a276]"></span>
+          )}
+        </div>
+        
+        {/* Domain */}
+        <div className="text-gray-500 text-xs mb-4">{domain}</div>
+        
+        {/* Simple Stats */}
+        <div className="flex justify-between text-sm mt-auto border-t border-[#444444] pt-3">
+          <div>
+            <span className="text-[#39a276] font-medium">{stats.activeTests}</span>
+            <span className="text-gray-400 ml-1">tests</span>
+          </div>
+          <div>
+            <span className="text-[#39a276] font-medium">{stats.totalViews.toLocaleString()}</span>
+            <span className="text-gray-400 ml-1">views</span>
+          </div>
+          <div className="text-gray-400 text-xs">
+            {formattedDate || 'Loading...'}
+          </div>
         </div>
       </div>
 
-      {/* Last Deploy/Update */}
-      <div className="flex items-center text-xs text-gray-500 mt-4">
-        <span className="rounded-full h-2 w-2 bg-[#3ECF8E] mr-1.5"></span>
-        <span className="truncate">
-          {stats.activeTests > 0 ? `${stats.activeTests} active test${stats.activeTests > 1 ? 's' : ''}` : 'Ready'}
-        </span>
-      </div>
-
-      {/* Actions menu - visible on hover */}
-      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity mr-2 mt-2">
+      {/* Action Menu - Visible on hover */}
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button 
           onClick={(e) => {
             e.stopPropagation();
             setShowConfirm(true);
           }}
-          className="p-1.5 text-gray-400 hover:text-white rounded-md hover:bg-gray-800" 
+          className="p-1.5 text-gray-400 hover:text-white bg-[#2a2a2a] rounded-md transition-colors"
           aria-label="Menu"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
           </svg>
         </button>
@@ -162,35 +168,37 @@ export default function AppCard({ app, onSelect, isSelected }: AppCardProps) {
       {/* Confirmation Modal */}
       {showConfirm && (
         <div 
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-[#121212] border border-gray-800 rounded-lg p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold mb-4 text-white">Confirm Deletion</h3>
-            <p className="text-sm mb-6 text-gray-300">
-              Are you sure you want to delete the project &quot;{app.name}&quot;? This action cannot be undone.
+          <div className="bg-[#121212] border border-[#444444] rounded-lg p-5 w-full max-w-sm mx-4">
+            <div className="mb-4">
+              <h3 className="text-lg font-medium text-white">Delete Project</h3>
+            </div>
+            <p className="text-sm mb-5 text-gray-300">
+              Are you sure you want to delete "{app.name}"? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button 
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 rounded-md bg-[#1f1f1f] text-white hover:bg-[#2a2a2a] transition-colors"
                 disabled={isDeleting}
               >
                 Cancel
               </button>
               <button 
                 onClick={handleDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+                className="px-4 py-2 rounded-md bg-red-600 text-white transition-colors flex items-center"
                 disabled={isDeleting}
               >
                 {isDeleting ? (
-                  <span className="flex items-center">
+                  <>
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Deleting...
-                  </span>
+                  </>
                 ) : (
                   "Delete"
                 )}

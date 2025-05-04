@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function DashboardHeader() {
   return (
-    <header className="bg-[#121212] border-b border-gray-800">
+    <header className="bg-[#171717] border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-8">

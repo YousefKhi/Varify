@@ -7,6 +7,16 @@ import CodePreview from "./CodePreview";
 import React from "react";
 // Import GitHub components
 import FileBrowser from "../github-test-creator/components/FileBrowser";
+import dynamic from 'next/dynamic';
+import { html } from "@codemirror/lang-html";
+import { EditorView } from '@codemirror/view';
+
+// Dynamically import CodeMirror to avoid SSR issues
+const CodeMirror = dynamic(
+  () => import('@uiw/react-codemirror').then(mod => mod.default),
+  { ssr: false }
+);
+
 
 type TestCreatorProps = {
   projectId: string;
@@ -17,8 +27,6 @@ type TestCreatorProps = {
 type TestData = {
   name: string;
   selector: string;
-  goal_type: "click" | "view" | "custom";
-  goal_selector?: string;
   split: number;
   variant_a_code: string;
   variant_b_code: string;
@@ -44,8 +52,6 @@ type Repo = {
 const INITIAL_TEST_DATA: TestData = {
   name: "",
   selector: "",
-  goal_type: "click",
-  goal_selector: "",
   split: 50,
   variant_a_code: "<div>Original content</div>",
   variant_b_code: "<div>Variation content</div>",
@@ -130,14 +136,13 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
           // Skip to file selection step immediately
           setGithubStep("file");
         }
-        console.log(selectedRepo);
       } catch (error: any) {
         console.error("Error fetching project or repo:", error);
       }
     };
   
     fetchProject();
-  }, [projectId, testId, selectedRepo]); // Add selectedRepo to dependency array
+  }, [projectId, testId]); // Removed selectedRepo from dependency array to prevent infinite re-renders
   
 
   // If testId is provided, fetch the existing test data
@@ -172,8 +177,6 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
           setTestData({
             name: data.name || "",
             selector: data.selector || "",
-            goal_type: data.goal_type || "click",
-            goal_selector: data.goal_selector || "",
             split: data.split || 50,
             variant_a_code: variants?.variant_a_code || "<div>Original content</div>",
             variant_b_code: variants?.variant_b_code || "<div>Variation content</div>",
@@ -211,7 +214,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
           : value
     }));
   };
-  
+
   const handleFileSelect = async (path: string) => {
     setSelectedFile(path);
     setTestData(prev => ({
@@ -291,9 +294,6 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
       // Validation
       if (!testData.name.trim()) throw new Error("Test name is required");
       if (!testData.selector.trim()) throw new Error("Element selector is required");
-      if (testData.goal_type === "click" && !testData.goal_selector?.trim()) {
-        throw new Error("Goal selector is required for click goals");
-      }
       
       // Create or update test
       let testResult;
@@ -305,12 +305,12 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
           .update({
             name: testData.name,
             selector: testData.selector,
-            goal_type: testData.goal_type,
-            goal_selector: testData.goal_selector,
-            split: testData.split,
+            variant_a_split: testData.split,
             active: testData.active,
             file_path: testData.file_path,
             branch_name: testData.branch_name,
+            variant_a_code: testData.variant_a_code,
+            variant_b_code: testData.variant_b_code,
             updated_at: new Date().toISOString(),
           })
           .eq("id", testId)
@@ -319,19 +319,6 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
           
         if (error) throw error;
         testResult = data;
-        
-        // Update variants
-        const { error: variantError } = await supabase
-          .from("variants")
-          .upsert({
-            test_id: testId,
-            name: "Main Variant",
-            variant_a_code: testData.variant_a_code,
-            variant_b_code: testData.variant_b_code,
-            updated_at: new Date().toISOString(),
-          });
-          
-        if (variantError) throw variantError;
       } else {
         // Create new test
         const { data, error } = await supabase
@@ -340,30 +327,18 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
             project_id: projectId,
             name: testData.name,
             selector: testData.selector,
-            goal_type: testData.goal_type,
-            goal_selector: testData.goal_selector,
-            split: testData.split,
+            variant_a_split: testData.split,
             active: testData.active,
             file_path: testData.file_path,
             branch_name: testData.branch_name,
+            variant_a_code: testData.variant_a_code,
+            variant_b_code: testData.variant_b_code,
           })
           .select()
           .single();
           
         if (error) throw error;
         testResult = data;
-        
-        // Create variants
-        const { error: variantError } = await supabase
-          .from("variants")
-          .insert({
-            test_id: testResult.id,
-            name: "Main Variant",
-            variant_a_code: testData.variant_a_code,
-            variant_b_code: testData.variant_b_code,
-          });
-          
-        if (variantError) throw variantError;
       }
       
       toast.success(`Test ${testId ? "updated" : "created"} successfully!`);
@@ -378,7 +353,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
 
   if (isLoading) {
     return (
-      <div className="space-y-6 bg-[#121212] rounded-md border border-gray-800 p-6">
+      <div className="space-y-6 bg-[#171717] rounded-md border border-[#444444] p-6">
         <div className="h-8 bg-gray-800 rounded-md w-1/3 animate-pulse"></div>
         <div className="h-6 bg-gray-800 rounded-md w-full animate-pulse"></div>
         <div className="grid grid-cols-2 gap-6 mt-6">
@@ -405,29 +380,29 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
           }
         `}</style>
         
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-[#171717] border border-[#444444] rounded-md p-6">
+        <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-medium text-white">{testId ? "Edit Test" : "Create New Test"}</h2>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setCreationMethod("manual")}
-                className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
-              >
-                Switch to Manual Mode
-              </button>
-              <button 
-                onClick={onCancel}
-                className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setCreationMethod("manual")}
+                className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md border border-[#444444] transition-colors"
+            >
+              Switch to Manual Mode
+            </button>
+            <button 
+              onClick={onCancel}
+                className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-          
+        </div>
+        
           <div className="flex gap-6">
             {/* Left side - Vertical Stepper */}
             <div className="w-60 shrink-0">
-              <div className="bg-gray-900 border border-gray-800 rounded-md p-4">
+              <div className="bg-[#1f1f1f] border border-[#444444] rounded-md p-4">
                 <h3 className="text-white font-medium mb-4">Easy A/B Test Steps</h3>
                 
                 <div className="flex flex-col space-y-6">
@@ -437,10 +412,10 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                       <div 
                         className={`rounded-full w-8 h-8 flex items-center justify-center text-sm cursor-pointer transition-all duration-300 ${
                           githubStep === "file" 
-                            ? "bg-[#3ECF8E] text-white" 
+                            ? "bg-[#39a276] text-white" 
                             : (githubStep === "section" || githubStep === "variant" || githubStep === "details") 
-                              ? "bg-gray-800 text-[#3ECF8E] border border-[#3ECF8E]" 
-                              : "bg-gray-800 text-gray-400"
+                              ? "bg-[#1f1f1f] text-[#39a276] border border-[#39a276]" 
+                              : "bg-[#1f1f1f] text-gray-400"
                         }`}
                         onClick={() => {
                           if (githubStep === "section" || githubStep === "variant" || githubStep === "details") {
@@ -451,7 +426,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         1
                       </div>
                       {(githubStep === "section" || githubStep === "variant" || githubStep === "details") && (
-                        <div className="w-0.5 h-full bg-[#3ECF8E] my-1"></div>
+                        <div className="w-0.5 h-full bg-[#39a276] my-1"></div>
                       )}
                     </div>
                     <div 
@@ -464,9 +439,9 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                     >
                       <h4 className={`font-medium ${githubStep === "file" ? "text-white" : "text-gray-400"}`}>Select File</h4>
                       <p className="text-xs text-gray-500 mt-1">Choose the file you want to test</p>
-                    </div>
-                  </div>
-                  
+          </div>
+        </div>
+        
                   {/* Step 2: Select Section (Variant A) - Only show when file is selected */}
                   {(githubStep === "section" || githubStep === "variant" || githubStep === "details") && (
                     <div className="flex opacity-100 transform translate-y-0 transition-all duration-500" 
@@ -475,10 +450,10 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         <div 
                           className={`rounded-full w-8 h-8 flex items-center justify-center text-sm cursor-pointer transition-all duration-300 ${
                             githubStep === "section" 
-                              ? "bg-[#3ECF8E] text-white" 
+                              ? "bg-[#39a276] text-white" 
                               : (githubStep === "variant" || githubStep === "details") 
-                                ? "bg-gray-800 text-[#3ECF8E] border border-[#3ECF8E]" 
-                                : "bg-gray-800 text-gray-400"
+                                ? "bg-[#1f1f1f] text-[#39a276] border border-[#39a276]" 
+                                : "bg-[#1f1f1f] text-gray-400"
                           }`}
                           onClick={() => {
                             if (githubStep === "variant" || githubStep === "details") {
@@ -489,7 +464,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                           2
                         </div>
                         {(githubStep === "variant" || githubStep === "details") && (
-                          <div className="w-0.5 h-full bg-[#3ECF8E] my-1"></div>
+                          <div className="w-0.5 h-full bg-[#39a276] my-1"></div>
                         )}
                       </div>
                       <div 
@@ -514,10 +489,10 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         <div 
                           className={`rounded-full w-8 h-8 flex items-center justify-center text-sm cursor-pointer transition-all duration-300 ${
                             githubStep === "variant" 
-                              ? "bg-[#3ECF8E] text-white" 
+                              ? "bg-[#39a276] text-white" 
                               : githubStep === "details" 
-                                ? "bg-gray-800 text-[#3ECF8E] border border-[#3ECF8E]" 
-                                : "bg-gray-800 text-gray-400"
+                                ? "bg-[#1f1f1f] text-[#39a276] border border-[#39a276]" 
+                                : "bg-[#1f1f1f] text-gray-400"
                           }`}
                           onClick={() => {
                             if (githubStep === "details") {
@@ -528,7 +503,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                           3
                         </div>
                         {githubStep === "details" && (
-                          <div className="w-0.5 h-full bg-[#3ECF8E] my-1"></div>
+                          <div className="w-0.5 h-full bg-[#39a276] my-1"></div>
                         )}
                       </div>
                       <div 
@@ -550,7 +525,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                     <div className="flex opacity-100 transform translate-y-0 transition-all duration-500" 
                          style={{animationDelay: "0.4s"}}>
                       <div className="mr-3">
-                        <div className={`rounded-full w-8 h-8 flex items-center justify-center text-sm transition-all duration-300 ${githubStep === "details" ? "bg-[#3ECF8E] text-white" : "bg-gray-800 text-gray-400"}`}>
+                        <div className={`rounded-full w-8 h-8 flex items-center justify-center text-sm transition-all duration-300 ${githubStep === "details" ? "bg-[#39a276] text-white" : "bg-[#1f1f1f] text-gray-400"}`}>
                           4
                         </div>
                       </div>
@@ -569,27 +544,27 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
             {/* Right side - Content */}
             <div className="flex-1">
               {/* Step 1 - File Selection */}
-              {githubStep === "file" && selectedRepo && (
-                <div className="bg-gray-900 border border-gray-800 rounded-md p-6 animate-fadeIn">
+        {githubStep === "file" && selectedRepo && (
+                <div className="bg-[#1f1f1f] border border-[#444444] rounded-md p-6 animate-fadeIn">
                   <h3 className="text-white font-medium text-lg mb-2">Step 1: Select a File</h3>
                   <p className="text-gray-400 text-sm mb-4">Browse and select the file containing the content you want to test.</p>
-                  
-                  <FileBrowser repo={selectedRepo} onSelectFile={handleFileSelect} />
+            
+            <FileBrowser repo={selectedRepo} onSelectFile={handleFileSelect} />
                   
                   <div className="mt-4 text-gray-400 text-xs">
                     <p>Tip: Look for files with HTML or JSX content that contain user interface elements.</p>
                   </div>
-                </div>
-              )}
-              
+          </div>
+        )}
+        
               {/* Step 2 - Select Original Content */}
-              {githubStep === "section" && fileContent && (
-                <div className="bg-gray-900 border border-gray-800 rounded-md p-6 animate-fadeIn">
+        {githubStep === "section" && fileContent && (
+                <div className="bg-[#1f1f1f] border border-[#444444] rounded-md p-6 animate-fadeIn">
                   <h3 className="text-white font-medium text-lg mb-2">Step 2: Select Original Content</h3>
                   <p className="text-gray-400 text-sm mb-4">Copy or select the HTML content you want to test from {selectedFile}</p>
                   
                   <div className="mb-6">
-                    <div className="bg-[#121212] p-4 rounded-md border border-gray-800 overflow-auto max-h-[300px]">
+                    <div className="bg-[#1f1f1f] p-4 rounded-md border border-[#444444] overflow-auto max-h-[300px]">
                       <pre className="text-sm font-mono whitespace-pre-wrap text-gray-300">{fileContent}</pre>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">Copy the HTML section you want to test from the file above</p>
@@ -603,14 +578,14 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                       value={selectedSection}
                       onChange={(e) => setSelectedSection(e.target.value)}
                       placeholder="<div>Paste the original HTML/content here...</div>"
-                      className="w-full bg-[#121212] border border-gray-800 rounded-md px-3 py-2 text-white font-mono text-sm h-40 focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+                      className="w-full bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white font-mono text-sm h-40 focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
                     />
                   </div>
                   
                   <div className="flex justify-between">
-                    <button 
-                      onClick={() => setGithubStep("file")}
-                      className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
+              <button 
+                onClick={() => setGithubStep("file")}
+                      className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md border border-[#444444] transition-colors"
                     >
                       Back to File Selection
                     </button>
@@ -619,18 +594,18 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         handleSelectCodeSection(selectedSection);
                         setGithubStep("variant");
                       }}
-                      className="px-4 py-2 bg-[#3ECF8E] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                      className="px-4 py-2 bg-[#39a276] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
                       disabled={!selectedSection}
                     >
                       Continue to Create Variation
-                    </button>
-                  </div>
+              </button>
+            </div>
                 </div>
               )}
               
               {/* Step 3 - Create Variant B and Set Split */}
               {githubStep === "variant" && selectedSection && (
-                <div className="bg-gray-900 border border-gray-800 rounded-md p-6 animate-fadeIn">
+                <div className="bg-[#1f1f1f] border border-[#444444] rounded-md p-6 animate-fadeIn">
                   <h3 className="text-white font-medium text-lg mb-2">Step 3: Create Your Variation</h3>
                   <p className="text-gray-400 text-sm mb-4">Edit the content below to create your test variant.</p>
                   
@@ -638,68 +613,131 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                     <div className="flex mb-2">
                       <div className="w-1/2 pr-2">
                         <h4 className="text-sm font-medium text-gray-400 mb-2">Original Version (A)</h4>
-                        <div className="bg-[#121212] p-3 rounded-md border border-gray-800 h-48 overflow-auto">
+                        <div className="bg-[#1f1f1f] p-3 rounded-md border border-[#444444] h-48 overflow-auto">
                           <pre className="text-xs font-mono whitespace-pre-wrap text-gray-300">{testData.variant_a_code}</pre>
-                        </div>
+              </div>
                       </div>
                       <div className="w-1/2 pl-2">
                         <h4 className="text-sm font-medium text-gray-400 mb-2">Your Variation (B)</h4>
-                        <textarea
-                          name="variant_b_code"
-                          value={testData.variant_b_code}
-                          onChange={handleChange}
-                          placeholder="Edit this version to create your test variation"
-                          className="w-full bg-[#121212] border border-gray-800 rounded-md px-3 py-2 text-gray-300 font-mono text-xs h-48 focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-                        />
+                        {typeof window !== 'undefined' && (
+                          <CodeMirror
+                            value={testData.variant_b_code}
+                            height="192px"
+                            onChange={(value) => setTestData({...testData, variant_b_code: value})}
+                            extensions={[
+                              html(),
+                              EditorView.lineWrapping
+                            ]}
+                            theme="dark"
+                            className="border border-[#444444] rounded-md overflow-hidden"
+                            basicSetup={{
+                              lineNumbers: true,
+                              highlightActiveLine: true,
+                              highlightSelectionMatches: false,
+                              syntaxHighlighting: true,
+                              closeBrackets: true,
+                              autocompletion: false,
+                              foldGutter: false,
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
                     <p className="text-xs text-gray-500">Tip: Make small, focused changes for more meaningful test results</p>
-                  </div>
-                  
-                  <div className="mb-6 bg-[#121212] rounded-md p-4 border border-gray-800">
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Preview Your Variations</h4>
-                    
-                    <div className="flex gap-4">
-                      <div className="w-1/2">
-                        <div className="text-xs text-center font-medium text-white mb-2">Version A (Original)</div>
-                        <div className="bg-white rounded-md border border-gray-700 p-2 h-32 overflow-auto">
-                          <CodePreview html={testData.variant_a_code} />
-                        </div>
-                      </div>
-                      <div className="w-1/2">
-                        <div className="text-xs text-center font-medium text-white mb-2">Version B (Variation)</div>
-                        <div className="bg-white rounded-md border border-gray-700 p-2 h-32 overflow-auto">
-                          <CodePreview html={testData.variant_b_code} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            </div>
+            
                   
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Traffic Split
-                      <span className="text-xs ml-2 text-gray-500">{testData.split}% will see version B</span>
                     </label>
-                    <input
-                      type="range"
-                      name="split"
-                      min="0"
-                      max="100"
-                      value={testData.split}
-                      onChange={handleChange}
-                      className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#3ECF8E]"
-                    />
-                    <div className="flex justify-between px-2 text-xs text-gray-500 mt-1">
-                      <span>0% see variant B</span>
-                      <span>50/50 split</span>
-                      <span>100% see variant B</span>
+                    
+                    <div className="bg-[#121212] border border-[#444444] rounded-lg p-3">
+                      <div className="flex items-center mb-3">
+                        {/* Visual bar representation */}
+                        <div className="flex-1 h-6 bg-[#1f1f1f] rounded-lg overflow-hidden flex">
+                          <div 
+                            className="h-full bg-blue-500 flex items-center justify-center text-xs text-white font-medium"
+                            style={{ width: `${100-testData.split}%` }}
+                          >
+                            <span className={`${100-testData.split < 20 ? 'opacity-0' : ''}`}>A</span>
+                          </div>
+                          <div 
+                            className="h-full bg-[#39a276] flex items-center justify-center text-xs text-white font-medium"
+                            style={{ width: `${testData.split}%` }}
+                          >
+                            <span className={`${testData.split < 20 ? 'opacity-0' : ''}`}>B</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Direct input controls */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-400 mr-2">A:</span>
+                          <div className="flex items-center">
+                            <span className="text-white font-medium">{100-testData.split}%</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button 
+                            type="button"
+                            onClick={() => setTestData(prev => ({...prev, split: 50}))}
+                            className="px-2 py-1 bg-[#1f1f1f] text-gray-300 text-xs rounded hover:bg-[#2a2a2a]"
+                          >
+                            50/50
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => setTestData(prev => ({...prev, split: 20}))}
+                            className="px-2 py-1 bg-[#1f1f1f] text-gray-300 text-xs rounded hover:bg-[#2a2a2a]"
+                          >
+                            80/20
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => setTestData(prev => ({...prev, split: 10}))}
+                            className="px-2 py-1 bg-[#1f1f1f] text-gray-300 text-xs rounded hover:bg-[#2a2a2a]"
+                          >
+                            90/10
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-400 mr-2">B:</span>
+                          <div className="bg-[#1f1f1f] border border-[#444444] rounded-md flex items-center px-1">
+                            <input
+                              type="number"
+                              name="split"
+                              min="0"
+                              max="100"
+                              value={testData.split}
+                              onChange={handleChange}
+                              className="w-12 py-1 bg-transparent text-white text-center focus:outline-none"
+                            />
+                            <span className="text-gray-400">%</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Slider */}
+                      <input
+                        type="range"
+                        name="split"
+                        min="0"
+                        max="100"
+                        value={testData.split}
+                        onChange={handleChange}
+                        className="w-full h-1.5 mt-3 bg-[#1f1f1f] rounded-lg appearance-none cursor-pointer accent-[#39a276]"
+                      />
                     </div>
                   </div>
-                  
+            
                   <div className="flex justify-between">
-                    <button 
+              <button 
                       onClick={() => setGithubStep("section")}
-                      className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
+                      className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md border border-[#444444] transition-colors"
                     >
                       Back to Original Content
                     </button>
@@ -736,23 +774,23 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         
                         setGithubStep("details");
                       }}
-                      className="px-4 py-2 bg-[#3ECF8E] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors"
+                      className="px-4 py-2 bg-[#39a276] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors"
                     >
                       Continue to Launch
-                    </button>
-                  </div>
-                </div>
-              )}
-              
+              </button>
+            </div>
+          </div>
+        )}
+        
               {/* Step 4 - Launch Test */}
               {githubStep === "details" && selectedSection && (
-                <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-md p-6 animate-fadeIn">
+                <form onSubmit={handleSubmit} className="bg-[#1f1f1f] border border-[#444444] rounded-md p-6 animate-fadeIn">
                   <h3 className="text-white font-medium text-lg mb-2">Step 4: Launch Your A/B Test</h3>
                   <p className="text-gray-400 text-sm mb-4">Review your test settings and launch when ready.</p>
                   
                   {/* Replace blue background box with inline styled content */}
-                  <div className="flex items-start mb-5 bg-gray-900 border-l-2 border-[#3ECF8E] pl-3 py-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-4 h-4 mr-2 mt-0.5 text-[#3ECF8E] flex-shrink-0">
+                  <div className="flex items-start mb-5 bg-[#1f1f1f] border-l-2 border-[#39a276] pl-3 py-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-4 h-4 mr-2 mt-0.5 text-[#39a276] flex-shrink-0">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor"></path>
                     </svg>
                     <div>
@@ -760,7 +798,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                       <p className="text-xs text-gray-400">Review the settings below and launch your test when ready.</p>
                     </div>
                   </div>
-                  
+            
                   <div className="grid grid-cols-2 gap-6 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -771,11 +809,11 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         name="name"
                         value={testData.name}
                         onChange={handleChange}
-                        className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+                        className="w-full bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
                         required
                       />
                     </div>
-                    
+                
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-1">
                         Element Selector <span className="text-xs text-gray-500">(Auto-generated)</span>
@@ -785,87 +823,45 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                         name="selector"
                         value={testData.selector}
                         onChange={handleChange}
-                        className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+                        className="w-full bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
                         required
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        This identifies the element to be tested - weve automatically detected this for you.
+                        This identifies the element to be tested - we've automatically detected this for you.
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-sm font-medium text-gray-400">
-                          Goal Type
-                        </label>
-                        <span className="text-xs text-gray-500">What counts as a conversion?</span>
-                      </div>
-                      <select
-                        name="goal_type"
-                        value={testData.goal_type}
-                        onChange={handleChange}
-                        className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-                      >
-                        <option value="click">Button/Link Click</option>
-                        <option value="view">Page View</option>
-                        <option value="custom">Custom Event</option>
-                      </select>
-                    </div>
-                    
-                    <div className="pt-2 relative">
-                      <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="active"
-                          checked={testData.active}
-                          onChange={(e) => setTestData({...testData, active: e.target.checked})}
-                          className="sr-only peer"
-                        />
-                        <div className="relative w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3ECF8E]"></div>
-                        <span className="ms-3 text-sm font-medium text-white">Activate test immediately</span>
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1 ml-12">
-                        When active, this test will run for visitors to your site.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {testData.goal_type === "click" && (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
-                        Goal Selector
-                        <span className="text-xs ml-1 text-gray-500">Element to track clicks on</span>
-                      </label>
+                
+                  <div className="pt-2 relative mb-6">
+                    <label className="inline-flex items-center cursor-pointer">
                       <input
-                        type="text"
-                        name="goal_selector"
-                        value={testData.goal_selector || ""}
-                        onChange={handleChange}
-                        placeholder="e.g. #signup-button, .purchase-btn, or button"
-                        className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-                        required
+                        type="checkbox"
+                        name="active"
+                        checked={testData.active}
+                        onChange={(e) => setTestData({...testData, active: e.target.checked})}
+                        className="sr-only peer"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
-                        This is the element users will click on to count as a conversion.
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="bg-[#121212] rounded-md p-4 border border-gray-800 mb-6">
+                      <div className="relative w-9 h-5 bg-[#1f1f1f] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#39a276]"></div>
+                      <span className="ms-3 text-sm font-medium text-white">Activate test immediately</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-12">
+                      When active, this test will run for visitors to your site.
+                    </p>
+                  </div>
+            
+                  <div className="bg-[#1f1f1f] rounded-md p-4 border border-[#444444] mb-6">
                     <h4 className="text-sm font-medium text-white mb-3">Installation Instructions</h4>
                     <p className="text-sm text-gray-400 mb-3">
                       After launching your test, add this small script to your website:
                     </p>
-                    <div className="bg-gray-900 p-3 rounded-md border border-gray-700">
+                    <div className="bg-[#1f1f1f] p-3 rounded-md border border-gray-700">
                       <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap overflow-x-auto">
 {`<script>
   (function(w,d,s,p,i) {
     var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s);
     j.async=true;
-    j.src='https://varify.yourdomain.com/api/loader.js';
+    j.src='https://varify-sepia.vercel.app/public/embed.js';
     j.setAttribute('data-project-id', '${projectId}');
     f.parentNode.insertBefore(j,f);
   })(window,document,'script','${projectId}');
@@ -876,19 +872,19 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
                       Add this script to your website &lt;head&gt; tag. No coding skills required!
                     </p>
                   </div>
-                  
+            
                   <div className="flex justify-between">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setGithubStep("variant")}
-                      className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
+                      className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md border border-[#444444] transition-colors"
                       disabled={isSubmitting}
                     >
                       Back to Variation
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#3ECF8E] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors"
+                      className="px-4 py-2 bg-[#39a276] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -911,11 +907,11 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
         </div>
       
     </>
-  );
-}
+    );
+  }
 
-// Default manual test creation flow
-return (
+  // Default manual test creation flow
+  return (
   <>
     {/* Global styles for animations */}
     <style jsx global>{`
@@ -929,14 +925,14 @@ return (
       }
     `}</style>
     
-    <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+    <div className="bg-[#171717] border border-[#444444] rounded-md p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-medium text-white">{testId ? "Edit Test" : "Create New Test"}</h2>
         <div className="flex gap-2">
           {project?.repo_url && (
             <button 
               onClick={() => setCreationMethod("github")}
-              className="flex items-center px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
+              className="flex items-center px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md border border-[#444444] transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 mr-2">
                 <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
@@ -946,7 +942,7 @@ return (
           )}
           <button 
             onClick={onCancel}
-            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
+            className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
           >
             Cancel
           </button>
@@ -967,7 +963,7 @@ return (
                 value={testData.name}
                 onChange={handleChange}
                 placeholder="e.g. Homepage Hero Button Test"
-                className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+                className="w-full bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
                 required
               />
             </div>
@@ -983,63 +979,95 @@ return (
                 value={testData.selector}
                 onChange={handleChange}
                 placeholder="e.g. #hero-cta or .product-card"
-                className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+                className="w-full bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">
-                Goal Type
-              </label>
-              <select
-                name="goal_type"
-                value={testData.goal_type}
-                onChange={handleChange}
-                className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-              >
-                <option value="click">Button/Element Click</option>
-                <option value="view">Page View</option>
-                <option value="custom">Custom Event</option>
-              </select>
-            </div>
-            
-            {testData.goal_type === "click" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Goal Selector
-                  <span className="text-xs ml-1 text-gray-500">Element to track clicks on</span>
-                </label>
-                <input
-                  type="text"
-                  name="goal_selector"
-                  value={testData.goal_selector || ""}
-                  onChange={handleChange}
-                  placeholder="e.g. #signup-button or .purchase-btn"
-                  className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-                  required
-                />
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-gray-400 mb-2">
                 Traffic Split
-                <span className="text-xs ml-2 text-gray-500">{testData.split}% for B</span>
               </label>
-              <input
-                type="range"
-                name="split"
-                min="0"
-                max="100"
-                value={testData.split}
-                onChange={handleChange}
-                className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#3ECF8E]"
-              />
-              <div className="flex justify-between px-2 text-xs text-gray-500 mt-1">
-                <span>0% B</span>
-                <span>50/50</span>
-                <span>100% B</span>
+              
+              <div className="bg-[#121212] border border-[#444444] rounded-lg p-3">
+                <div className="flex items-center mb-3">
+                  {/* Visual bar representation */}
+                  <div className="flex-1 h-6 bg-[#1f1f1f] rounded-lg overflow-hidden flex">
+                    <div 
+                      className="h-full bg-blue-500 flex items-center justify-center text-xs text-white font-medium"
+                      style={{ width: `${100-testData.split}%` }}
+                    >
+                      <span className={`${100-testData.split < 20 ? 'opacity-0' : ''}`}>A</span>
+                    </div>
+                    <div 
+                      className="h-full bg-[#39a276] flex items-center justify-center text-xs text-white font-medium"
+                      style={{ width: `${testData.split}%` }}
+                    >
+                      <span className={`${testData.split < 20 ? 'opacity-0' : ''}`}>B</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Direct input controls */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-400 mr-2">A:</span>
+                    <div className="flex items-center">
+                      <span className="text-white font-medium">{100-testData.split}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button 
+                      type="button"
+                      onClick={() => setTestData(prev => ({...prev, split: 50}))}
+                      className="px-2 py-1 bg-[#1f1f1f] text-gray-300 text-xs rounded hover:bg-[#2a2a2a]"
+                    >
+                      50/50
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTestData(prev => ({...prev, split: 20}))}
+                      className="px-2 py-1 bg-[#1f1f1f] text-gray-300 text-xs rounded hover:bg-[#2a2a2a]"
+                    >
+                      80/20
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTestData(prev => ({...prev, split: 10}))}
+                      className="px-2 py-1 bg-[#1f1f1f] text-gray-300 text-xs rounded hover:bg-[#2a2a2a]"
+                    >
+                      90/10
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-400 mr-2">B:</span>
+                    <div className="bg-[#1f1f1f] border border-[#444444] rounded-md flex items-center px-1">
+                      <input
+                        type="number"
+                        name="split"
+                        min="0"
+                        max="100"
+                        value={testData.split}
+                        onChange={handleChange}
+                        className="w-12 py-1 bg-transparent text-white text-center focus:outline-none"
+                      />
+                      <span className="text-gray-400">%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Slider */}
+                <input
+                  type="range"
+                  name="split"
+                  min="0"
+                  max="100"
+                  value={testData.split}
+                  onChange={handleChange}
+                  className="w-full h-1.5 mt-3 bg-[#1f1f1f] rounded-lg appearance-none cursor-pointer accent-[#39a276]"
+                />
               </div>
             </div>
             
@@ -1052,7 +1080,7 @@ return (
                   onChange={(e) => setTestData({...testData, active: e.target.checked})}
                   className="sr-only peer"
                 />
-                <div className="relative w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3ECF8E]"></div>
+                <div className="relative w-9 h-5 bg-[#1f1f1f] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#39a276]"></div>
                 <span className="ms-3 text-sm font-medium text-white">Active</span>
               </label>
               <p className="text-xs text-gray-500 mt-1 ml-12">
@@ -1063,22 +1091,22 @@ return (
           
           {/* Right column - Variant code */}
           <div className="space-y-4">
-            <div className="border-b border-gray-800 mb-2">
+            <div className="border-b border-[#444444] mb-2">
               <div className="flex space-x-6">
-                <button
-                  type="button"
-                  className={`text-sm pb-3 px-1 font-medium transition-colors ${currentPreview === "a" ? "text-white border-b-2 border-[#3ECF8E]" : "text-gray-400 hover:text-white"}`}
-                  onClick={() => setCurrentPreview("a")}
-                >
-                  Variant A (Original)
-                </button>
-                <button
-                  type="button"
-                  className={`text-sm pb-3 px-1 font-medium transition-colors ${currentPreview === "b" ? "text-white border-b-2 border-[#3ECF8E]" : "text-gray-400 hover:text-white"}`}
-                  onClick={() => setCurrentPreview("b")}
-                >
-                  Variant B (Test)
-                </button>
+              <button
+                type="button"
+                  className={`text-sm pb-3 px-1 font-medium transition-colors ${currentPreview === "a" ? "text-white border-b-2 border-[#39a276]" : "text-gray-400 hover:text-white"}`}
+                onClick={() => setCurrentPreview("a")}
+              >
+                Variant A (Original)
+              </button>
+              <button
+                type="button"
+                  className={`text-sm pb-3 px-1 font-medium transition-colors ${currentPreview === "b" ? "text-white border-b-2 border-[#39a276]" : "text-gray-400 hover:text-white"}`}
+                onClick={() => setCurrentPreview("b")}
+              >
+                Variant B (Test)
+              </button>
               </div>
             </div>
             
@@ -1087,35 +1115,64 @@ return (
                 <label className="block text-sm font-medium text-gray-400 mb-1">
                   Original Content (A)
                 </label>
-                <textarea
-                  name="variant_a_code"
-                  value={testData.variant_a_code}
-                  onChange={handleChange}
-                  placeholder="<div>Your original HTML here</div>"
-                  className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-gray-300 font-mono text-sm h-40 focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-                  required
-                />
+                {typeof window !== 'undefined' && (
+                  <CodeMirror
+                    value={testData.variant_a_code}
+                    height="160px"
+                    onChange={(value) => setTestData({...testData, variant_a_code: value})}
+                    extensions={[
+                      html(),
+                      EditorView.lineWrapping
+                    ]}
+                    theme="dark"
+                    className="border border-[#444444] rounded-md overflow-hidden"
+                    basicSetup={{
+                      lineNumbers: true,
+                      highlightActiveLine: true,
+                      highlightSelectionMatches: false,
+                      syntaxHighlighting: true,
+                      closeBrackets: true,
+                      autocompletion: false,
+                      lintKeymap: false,
+                      foldGutter: false,
+                    }}
+                  />
+                )}
               </div>
             ) : (
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">
                   Variation Content (B)
                 </label>
-                <textarea
-                  name="variant_b_code"
-                  value={testData.variant_b_code}
-                  onChange={handleChange}
-                  placeholder="<div>Your variation HTML here</div>"
-                  className="w-full bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-gray-300 font-mono text-sm h-40 focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
-                  required
-                />
+                {typeof window !== 'undefined' && (
+                  <CodeMirror
+                    value={testData.variant_b_code}
+                    height="160px"
+                    onChange={(value) => setTestData({...testData, variant_b_code: value})}
+                    extensions={[
+                      html(),
+                      EditorView.lineWrapping
+                    ]}
+                    theme="dark"
+                    className="border border-[#444444] rounded-md overflow-hidden"
+                    basicSetup={{
+                      lineNumbers: true,
+                      highlightActiveLine: true,
+                      highlightSelectionMatches: false,
+                      syntaxHighlighting: true,
+                      closeBrackets: true,
+                      autocompletion: false,
+                      foldGutter: false,
+                    }}
+                  />
+                )}
               </div>
             )}
             
-            <div className="bg-gray-900 rounded-md p-4 border border-gray-800">
+            <div className="bg-[#1f1f1f] rounded-md p-4 border border-[#444444]">
               <h3 className="text-sm font-medium text-gray-400 mb-2">Preview</h3>
               <div className="bg-white p-3 rounded-md border border-gray-700">
-                <CodePreview html={currentPreview === "a" ? testData.variant_a_code : testData.variant_b_code} />
+                <CodePreview code={currentPreview === "a" ? testData.variant_a_code : testData.variant_b_code} />
               </div>
             </div>
           </div>
@@ -1132,7 +1189,7 @@ return (
               value={testData.file_path || ""}
               onChange={handleChange}
               placeholder="File path (e.g. /pages/index.js)"
-              className="bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+              className="bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
             />
             <input
               type="text"
@@ -1140,7 +1197,7 @@ return (
               value={testData.branch_name || ""}
               onChange={handleChange}
               placeholder="Git branch name"
-              className="bg-gray-900 border border-gray-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#3ECF8E] focus:border-[#3ECF8E]"
+              className="bg-[#1f1f1f] border border-[#444444] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#39a276] focus:border-[#39a276]"
             />
           </div>
         </div>
@@ -1149,14 +1206,14 @@ return (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
+            className="px-4 py-2 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
             disabled={isSubmitting}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-[#3ECF8E] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors"
+            className="px-4 py-2 bg-[#39a276] text-white text-sm font-medium rounded-md hover:bg-opacity-90 transition-colors"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -1175,5 +1232,5 @@ return (
       </form>
     </div>
   </>
-);
+  );
 } 

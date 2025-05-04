@@ -8,14 +8,14 @@ export const dynamic = "force-dynamic";
 // Dashboard main page showing list of user's apps
 export default function Dashboard() {
   return (
-    <main className="min-h-screen bg-[#121212]">
+    <main className="min-h-screen bg-[#171717]">
       <DashboardHeader />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Navigation Tabs */}
         <div className="border-b border-gray-800 mb-6">
           <nav className="flex space-x-6">
-            <Link href="/dashboard" className="text-white border-b-2 border-[#3ECF8E] font-medium pb-4 px-1">
+            <Link href="/dashboard" className="text-white border-b-2 border-[#39a276] font-medium pb-4 px-1">
               Overview
             </Link>
             <Link href="/dashboard/settings" className="text-gray-400 hover:text-white pb-4 px-1">
@@ -35,12 +35,12 @@ export default function Dashboard() {
             <input
               type="text"
               placeholder="Search apps..."
-              className="bg-gray-900 w-full pl-10 pr-4 py-2 rounded-md border border-gray-800 text-white focus:ring-2 focus:ring-[#3ECF8E] focus:outline-none"
+              className="bg-[#1f1f1f] w-full pl-10 pr-4 py-2 rounded-md border border-[#444444] text-white focus:ring-2 focus:ring-[#39a276] focus:outline-none"
             />
           </div>
           
           <div className="flex items-center space-x-3">
-            <select className="bg-gray-900 text-white border border-gray-800 rounded-md px-3 py-2 text-sm">
+            <select className="bg-[#1f1f1f] text-white border border-[#1f1f1f] rounded-md px-3 py-2 text-sm">
               <option>Sort by: Recently Updated</option>
               <option>Sort by: Name</option>
               <option>Sort by: Created</option>

@@ -6,7 +6,7 @@ export default function AddAppButton() {
   return (
     <Link 
       href="/dashboard/new"
-      className="inline-flex items-center px-3 py-2 text-sm rounded-md bg-[#3ECF8E] text-white font-medium hover:bg-opacity-90 transition-all"
+      className="inline-flex items-center px-3 py-2 text-sm rounded-md bg-[#39a276] text-white font-medium hover:bg-opacity-90 transition-all"
     >
       <svg 
         xmlns="http://www.w3.org/2000/svg" 

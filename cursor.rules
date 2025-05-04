@@ -8,6 +8,7 @@ Use TailwindCSS for all styling.
 Avoid inline styles unless absolutely necessary.
 Ensure sufficient padding, spacing, and contrast in all UI components.
 Prioritize visual hierarchy — headers should stand out clearly.
+NO GRADIENTS
 
 # 📐 Layout & Structure
 Use full screen sections when applicable.

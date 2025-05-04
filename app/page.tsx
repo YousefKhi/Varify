@@ -8,7 +8,9 @@ import RotatingText from "@/components/RotatingText";
 
 export default function Page() {
   return (
+    
     <div className="min-h-screen bg-gradient-to-br from-[#111111] to-[#0A0A0A] text-white flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+      
       {/* Background graphics - simplified for better performance */}
       <div className="absolute inset-0 z-0 opacity-10">
         <div className="absolute top-20 left-20 w-[200px] h-[200px] rounded-full bg-[#3ECF8E] blur-[80px] transform-gpu"></div>
@@ -35,7 +37,7 @@ export default function Page() {
           </div>
         </div>
         
-        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-center flex flex-col items-center gap-1 transform-gpu">
+        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-center flex flex-col items-center gap-3 transform-gpu">
           <span className="font-inter text-white">
             It&apos;s not your product,
           </span>
@@ -59,7 +61,7 @@ export default function Page() {
         </h1>
 
         <p className="text-lg text-gray-300 max-w-2xl transform-gpu">
-        Join early access and be the first to try effortless, no-code A/B testing.
+        Join the waitlist and be the first to try effortless, no-code A/B testing.
         </p>
         
         <div className="w-full max-w-md mt-6 relative transform-gpu">

@@ -213,13 +213,13 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
         <div className="flex space-x-3">
           <button
             onClick={onBack}
-            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
+            className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md transition-colors"
           >
             Back to Tests
           </button>
           <button
             onClick={onEdit}
-            className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
+            className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-gray-800 text-white text-sm rounded-md border border-gray-800 transition-colors"
           >
             Edit Test
           </button>
@@ -228,19 +228,19 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
       
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-5">
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-5">
           <h3 className="text-sm font-medium text-gray-400 mb-1">Total Views</h3>
           <div className="text-2xl font-medium text-white">{stats.views.toLocaleString()}</div>
           <p className="text-xs text-gray-500 mt-1">Total impressions of this test</p>
         </div>
         
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-5">
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-5">
           <h3 className="text-sm font-medium text-gray-400 mb-1">Conversions</h3>
           <div className="text-2xl font-medium text-white">{stats.conversions.toLocaleString()}</div>
           <p className="text-xs text-gray-500 mt-1">Total goal completions</p>
         </div>
         
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-5">
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-5">
           <h3 className="text-sm font-medium text-gray-400 mb-1">Conversion Rate</h3>
           <div className="text-2xl font-medium text-white">{stats.conversionRate.toFixed(2)}%</div>
           <p className="text-xs text-gray-500 mt-1">Percentage of views that convert</p>
@@ -249,14 +249,14 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
       
       {/* Test Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-6">
           <h3 className="text-md font-medium text-white mb-4">Test Configuration</h3>
           <div className="space-y-4">
             <div className="flex justify-between py-2 border-b border-gray-800">
               <span className="text-sm text-gray-400">Status</span>
               <div className="flex items-center gap-3">
-                <div className={`flex items-center gap-1.5 ${test.active ? 'text-[#3ECF8E]' : 'text-gray-500'}`}>
-                  <span className={`inline-block w-2 h-2 rounded-full ${test.active ? 'bg-[#3ECF8E]' : 'bg-gray-500'}`}></span>
+                <div className={`flex items-center gap-1.5 ${test.active ? 'text-[#39a276]' : 'text-gray-500'}`}>
+                  <span className={`inline-block w-2 h-2 rounded-full ${test.active ? 'bg-[#39a276]' : 'bg-gray-500'}`}></span>
                   <span className="text-sm">{test.active ? 'Active' : 'Inactive'}</span>
                 </div>
                 <button 
@@ -294,7 +294,7 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
               <div className="flex items-center gap-2">
                 <div className="w-20 h-1.5 bg-gray-800 rounded-full">
                   <div 
-                    className="h-full bg-[#3ECF8E] rounded-full" 
+                    className="h-full bg-[#39a276] rounded-full" 
                     style={{ width: `${test.split}%` }}
                   />
                 </div>
@@ -341,11 +341,11 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
           </div>
         </div>
         
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-6">
           <h3 className="text-md font-medium text-white mb-4">Performance Comparison</h3>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-900 border border-gray-800 p-4 rounded-md">
+            <div className="bg-[#1f1f1f] border border-gray-800 p-4 rounded-md">
               <h4 className="text-sm font-medium text-white mb-3">Variant A (Original)</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -363,7 +363,7 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
               </div>
             </div>
             
-            <div className="bg-gray-900 border border-gray-800 p-4 rounded-md">
+            <div className="bg-[#1f1f1f] border border-gray-800 p-4 rounded-md">
               <h4 className="text-sm font-medium text-white mb-3">Variant B (Test)</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -389,7 +389,7 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
                 Need more data to determine a winner (minimum 100 views per variant)
               </div>
             ) : stats.variantB.conversionRate > stats.variantA.conversionRate ? (
-              <div className="bg-[#3ECF8E]/10 border border-[#3ECF8E]/20 text-[#3ECF8E] p-3 rounded-md">
+              <div className="bg-[#39a276]/10 border border-[#39a276]/20 text-[#39a276] p-3 rounded-md">
                 <span className="text-sm font-medium">Variant B is winning!</span>
                 <p className="text-xs mt-1">
                   {((stats.variantB.conversionRate - stats.variantA.conversionRate) / stats.variantA.conversionRate * 100).toFixed(1)}% improvement over original
@@ -413,21 +413,21 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
       
       {/* Variant Preview */}
       {variant && (
-        <div className="bg-[#121212] border border-gray-800 rounded-md p-6">
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-6">
           <h3 className="text-md font-medium text-white mb-4">Variant Preview</h3>
           
           <div className="border-b border-gray-800 mb-6">
             <div className="flex space-x-6">
               <button
                 type="button"
-                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "a" ? "text-white border-b-2 border-[#3ECF8E]" : "text-gray-400 hover:text-white"}`}
+                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "a" ? "text-white border-b-2 border-[#39a276]" : "text-gray-400 hover:text-white"}`}
                 onClick={() => setActivePreview("a")}
               >
                 Variant A (Original)
               </button>
               <button
                 type="button"
-                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "b" ? "text-white border-b-2 border-[#3ECF8E]" : "text-gray-400 hover:text-white"}`}
+                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "b" ? "text-white border-b-2 border-[#39a276]" : "text-gray-400 hover:text-white"}`}
                 onClick={() => setActivePreview("b")}
               >
                 Variant B (Test)
@@ -438,7 +438,7 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="text-sm font-medium text-gray-400 mb-2">HTML Code</div>
-              <div className="bg-gray-900 border border-gray-800 p-3 rounded-md">
+              <div className="bg-[#1f1f1f] border border-gray-800 p-3 rounded-md">
                 <pre className="text-xs overflow-auto max-h-64 whitespace-pre-wrap text-gray-300">
                   {activePreview === "a" ? variant.variant_a_code : variant.variant_b_code}
                 </pre>
@@ -448,7 +448,7 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
             <div>
               <div className="text-sm font-medium text-gray-400 mb-2">Visual Preview</div>
               <div className="border border-gray-800 rounded-md overflow-hidden h-64 bg-white">
-                <CodePreview html={activePreview === "a" ? variant.variant_a_code : variant.variant_b_code} />
+                <CodePreview code={activePreview === "a" ? variant.variant_a_code : variant.variant_b_code} />
               </div>
             </div>
           </div>

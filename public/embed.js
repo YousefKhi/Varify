@@ -10,7 +10,7 @@
     const scripts = document.getElementsByTagName('script');
     for (let i = 0; i < scripts.length; i++) {
       const script = scripts[i];
-      const projectId = script.getAttribute('data-project');
+      const projectId = script.getAttribute('data-project') || script.getAttribute('data-project-id');
       if (projectId && script.src.includes('embed.js')) {
         return projectId;
       }

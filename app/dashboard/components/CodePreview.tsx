@@ -1,103 +1,58 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live";
+import React, { useState } from "react";
 
 type CodePreviewProps = {
-  html: string;
+  code: string;
+  title?: string;
 };
 
-export default function CodePreview({ html }: CodePreviewProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  
-  useEffect(() => {
-    if (iframeRef.current) {
-      const iframe = iframeRef.current;
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      
-      if (doc) {
-        try {
-          // Reset the iframe content
-          doc.open();
-          
-          // Create a proper HTML document structure that renders the HTML content
-          // with viewport settings to ensure proper scaling
-          const rawHtml = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-                <style>
-                  html, body {
-                    margin: 0;
-                    padding: 0;
-                    width: 100%;
-                    height: 100%;
-                    overflow: auto;
-                  }
-                  body {
-                    padding: 8px;
-                    box-sizing: border-box;
-                  }
-                </style>
-              </head>
-              <body>${html}</body>
-            </html>
-          `;
-          
-          doc.write(rawHtml);
-          doc.close();
-          
-          // Set iframe dimensions to accommodate content
-          const updateIframeSize = () => {
-            if (iframe && doc.body) {
-              // Calculate dimensions based on content
-              const width = doc.body.scrollWidth;
-              const height = doc.body.scrollHeight;
-              
-              // Set iframe size with some padding
-              iframe.style.width = '100%';
-              iframe.style.height = `${Math.min(400, height + 16)}px`;
-            }
-          };
-          
-          // Initial size update
-          updateIframeSize();
-          
-          // Set up observer to handle dynamic content changes
-          const resizeObserver = new ResizeObserver(updateIframeSize);
-          resizeObserver.observe(doc.body);
-          
-          // Set up window resize handler
-          const handleResize = () => updateIframeSize();
-          window.addEventListener('resize', handleResize);
-          
-          return () => {
-            resizeObserver.disconnect();
-            window.removeEventListener('resize', handleResize);
-          };
-        } catch (error) {
-          console.error("Error rendering preview:", error);
-          doc.write(`<p style="color: red">Error rendering preview: ${error}</p>`);
-          doc.close();
-        }
-      }
-    }
-  }, [html]);
+const scope = {
+  React,
+};
+
+export default function CodePreview({ code, title = "Code Preview" }: CodePreviewProps) {
+  const [editorCode, setEditorCode] = useState(code);
 
   return (
-    <div className="w-full bg-white rounded-md overflow-hidden border border-gray-200">
-      <iframe
-        ref={iframeRef}
-        title="Code Preview"
-        className="w-full border-0"
-        style={{ 
-          minHeight: '100px',
-          maxHeight: '400px',
-          display: 'block'
-        }}
-        sandbox="allow-same-origin"
-      />
-    </div>
+    <LiveProvider code={editorCode} scope={scope}>
+      <div className="space-y-4">
+        {/* Title */}
+        <h3 className="text-white text-lg font-medium">{title}</h3>
+        
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Code Editor */}
+          <div className="bg-[#121212] border border-[#444444] rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 bg-[#1f1f1f] border-b border-[#444444]">
+              <span className="text-sm text-gray-400">Edit Code</span>
+              <button 
+                onClick={() => setEditorCode(code)} 
+                className="text-xs px-2 py-1 bg-[#2a2a2a] text-gray-300 rounded hover:bg-[#39a276] hover:text-white transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+            <div className="p-1">
+              <LiveEditor 
+                onChange={setEditorCode}
+                className="text-sm font-mono p-3 bg-[#1a1a1a] text-white h-[250px] overflow-auto rounded w-full" 
+              />
+            </div>
+            <LiveError className="bg-red-500/10 text-red-400 text-xs p-4 border-t border-red-500/20" />
+          </div>
+
+          {/* Live Visual Preview */}
+          <div className="flex flex-col">
+            <div className="text-sm text-gray-400 mb-2 px-4">Preview Result</div>
+            <div className="p-6 border border-[#444444] rounded-lg bg-white dark:bg-[#1f1f1f] flex-1 flex items-center justify-center">
+              <div className="w-full max-w-md mx-auto">
+                <LivePreview />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </LiveProvider>
   );
-} 
+}
