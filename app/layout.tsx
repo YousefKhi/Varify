@@ -30,16 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			<body>
 				{/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
 				<ClientLayout>{children}</ClientLayout>
-			<script>
-			(function(w,d,s,p,i) {
-				var f=d.getElementsByTagName(s)[0],
-					j=d.createElement(s);
-				j.async=true;
-				j.src='https://varify-sepia.vercel.app/public/embed.js';
-				j.setAttribute('data-project-id', 'b2590be2-cb8a-4631-b45f-93b59b62d419');
-				f.parentNode.insertBefore(j,f);
-			})(window,document,'script','b2590be2-cb8a-4631-b45f-93b59b62d419');
-			</script>
+			
 			</body>
 		</html>
 	);

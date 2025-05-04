@@ -10,7 +10,12 @@ export default function Page() {
   return (
     
     <div className="min-h-screen bg-gradient-to-br from-[#111111] to-[#0A0A0A] text-white flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
-      
+      <script
+  async
+  src="https://varify-sepia.vercel.app/public/embed.js"
+  data-project-id="b2590be2-cb8a-4631-b45f-93b59b62d419">
+</script>
+
       {/* Background graphics - simplified for better performance */}
       <div className="absolute inset-0 z-0 opacity-10">
         <div className="absolute top-20 left-20 w-[200px] h-[200px] rounded-full bg-[#3ECF8E] blur-[80px] transform-gpu"></div>
