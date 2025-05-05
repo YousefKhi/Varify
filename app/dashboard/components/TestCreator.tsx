@@ -1384,7 +1384,7 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
         <div className="bg-[#1f1f1f] p-4 rounded-md border border-[#444444] mb-6">
           <h3 className="text-sm font-medium text-white mb-3">Installation Instructions</h3>
           <p className="text-sm text-gray-400 mb-3">
-            Add this code to your website's &lt;head&gt; tag:
+            Add this code to your websites &lt;head&gt; tag:
           </p>
           <div className="bg-[#121212] p-3 rounded-md border border-gray-700">
             <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap overflow-x-auto">

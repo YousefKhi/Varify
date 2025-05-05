@@ -4,16 +4,60 @@ import Link from "next/link";
 import ButtonSignin from "@/components/ButtonSignin";
 import Image from "next/image";
 import RotatingText from "@/components/RotatingText";
-
+import { FormEvent, SetStateAction, useState } from "react";
 
 export default function Page() {
+  const [email, setEmail] = useState("");
+  const [email2, setEmail2] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting2, setIsSubmitting2] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState({ message: "", isError: false });
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>, formEmail: string, setFormEmail: { (value: SetStateAction<string>): void; (value: SetStateAction<string>): void; (arg0: string): void; }, setFormSubmitting: { (value: SetStateAction<boolean>): void; (value: SetStateAction<boolean>): void; (arg0: boolean): void; }) => {
+    e.preventDefault();
+    
+    // Validate email
+    if (!formEmail || !/^\S+@\S+\.\S+$/.test(formEmail)) {
+      setSubmitStatus({ message: "Please enter a valid email address", isError: true });
+      return;
+    }
+    
+    setFormSubmitting(true);
+    setSubmitStatus({ message: "", isError: false });
+    
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: formEmail }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to join waitlist");
+      }
+      
+      setSubmitStatus({ message: "You've successfully joined the waitlist!", isError: false });
+      setFormEmail("");
+    } catch (error) {
+      console.error("Error joining waitlist:", error);
+      setSubmitStatus({ message: error.message || "Failed to join waitlist. Please try again.", isError: true });
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
+
   return (
     
     <div className="min-h-screen bg-gradient-to-br from-[#111111] to-[#0A0A0A] text-white flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
       <script
   async
   src="https://varify-sepia.vercel.app/embed.js"
-  data-project-id="b2590be2-cb8a-4631-b45f-93b59b62d419">
+  data-project-id="b2590be2-cb8a-4631-b45f-93b59b62d419"
+  data-disable-highlight="true">
 </script>
 
       {/* Background graphics - simplified for better performance */}
@@ -70,21 +114,41 @@ export default function Page() {
         </p>
         
         <div className="w-full max-w-md mt-6 relative transform-gpu">
-          <form className="relative flex flex-col sm:flex-row gap-3 w-full bg-[#151515] p-1 rounded-lg">
+          <form 
+            className="relative flex flex-col sm:flex-row gap-3 w-full bg-[#151515] p-1 rounded-lg"
+            onSubmit={(e) => handleSubmit(e, email, setEmail, setIsSubmitting)}
+          >
             <input 
               type="email" 
               placeholder="Enter your email"
               aria-label="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="flex-grow px-4 py-3 rounded-lg bg-[#1A1A1A] border border-[#333333] focus:border-[#3ECF8E] focus:outline-none text-white placeholder-gray-500"
               required
             />
             <button 
               type="submit" 
-              className="bg-[#3ECF8E] hover:bg-[#34B97C] text-black font-medium px-6 py-3 rounded-lg transition-colors"
+              className="bg-[#3ECF8E] hover:bg-[#34B97C] text-black font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center"
+              disabled={isSubmitting}
             >
-              Join Waitlist
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Joining...
+                </>
+              ) : "Join Waitlist"}
             </button>
           </form>
+          
+          {submitStatus.message && (
+            <div className={`mt-2 text-sm ${submitStatus.isError ? 'text-red-400' : 'text-green-400'}`}>
+              {submitStatus.message}
+            </div>
+          )}
         </div>
         
         {/* Feature cards with hover effects */}
@@ -121,34 +185,137 @@ export default function Page() {
           </div>
         </div>
         
-        {/* Dashboard preview */}
-        <div className="mt-20 w-full relative">
-          <div className="relative w-full rounded-xl overflow-hidden border border-gray-800 shadow-2xl shadow-black/50">
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/80 to-transparent z-10 flex items-center justify-center">
-              <div className="bg-[#151515]/80 backdrop-blur-sm p-6 rounded-xl border border-gray-800 max-w-md mx-4">
-                <h3 className="text-xl font-bold mb-3">Powerful A/B testing that just works</h3>
-                <p className="text-gray-300 mb-4">Track user behavior with real-time insights and beautiful dashboards that help you make better decisions faster.</p>
-                <div className="flex gap-2 justify-center">
-                  <div className="h-1.5 w-10 rounded-full bg-[#3ECF8E]"></div>
-                  <div className="h-1.5 w-3 rounded-full bg-gray-600"></div>
-                  <div className="h-1.5 w-3 rounded-full bg-gray-600"></div>
-                </div>
+        {/* Visual editor showcase */}
+        <div className="mt-16 w-full">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8">Visual A/B Testing Made Simple</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-[#151515] rounded-xl overflow-hidden border border-gray-800 shadow-lg shadow-black/30 hover:border-[#3ECF8E]/20 transition-all duration-300">
+              <div className="p-5 border-b border-gray-800">
+                <h3 className="text-xl font-bold text-white">Intuitive Visual Editor</h3>
+                <p className="text-gray-400 mt-2">Select any element on your page and create variations without coding</p>
+              </div>
+              <div className="relative">
+                <img 
+                  src="/100.png" 
+                  alt="Visual A/B Test Editor"
+                  className="w-full"
+                  width={600}
+                  height={400}
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-transparent"></div>
               </div>
             </div>
-            <div className="relative max-w-full">
-              <div className="bg-gradient-to-t from-[#151515] to-transparent h-16 absolute bottom-0 inset-x-0 z-5"></div>
-              <img 
-                src="/dashboard-preview.jpg" 
-                alt="Varify dashboard preview" 
-                className="w-full h-auto"
-                width={1200}
-                height={600}
-                loading="lazy"
-              />
+            
+            <div className="bg-[#151515] rounded-xl overflow-hidden border border-gray-800 shadow-lg shadow-black/30 hover:border-[#3ECF8E]/20 transition-all duration-300">
+              <div className="p-5 border-b border-gray-800">
+                <h3 className="text-xl font-bold text-white">GitHub Integration</h3>
+                <p className="text-gray-400 mt-2">Connect directly to your codebase for seamless testing and deployment</p>
+              </div>
+              <div className="relative">
+                <img 
+                  src="/200.png" 
+                  alt="GitHub Integration Interface"
+                  className="w-full"
+                  width={600}
+                  height={400}
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-transparent"></div>
+              </div>
             </div>
           </div>
         </div>
-       
+        
+        {/* Upcoming features section */}
+        <div className="mt-16 w-full bg-[#151515] rounded-xl border border-gray-800 p-8">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6">Coming Soon</h2>
+          <p className="text-gray-300 mb-8 max-w-3xl mx-auto">
+            Join our waitlist today and be the first to experience these game-changing features as soon as they're released:
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-[#1A1A1A] p-6 rounded-lg border border-gray-800">
+              <div className="w-10 h-10 rounded-full bg-[#3ECF8E]/10 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#3ECF8E" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Automatic Script Installer from GitHub</h3>
+              <p className="text-gray-400 text-sm">
+                One-click installation directly from your GitHub repository. No manual script copying required.
+              </p>
+            </div>
+            
+            <div className="bg-[#1A1A1A] p-6 rounded-lg border border-gray-800">
+              <div className="w-10 h-10 rounded-full bg-[#3ECF8E]/10 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#3ECF8E" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Automatic Variant Split Optimization</h3>
+              <p className="text-gray-400 text-sm">
+                AI-powered traffic allocation that automatically favors winning variants to maximize conversions.
+              </p>
+            </div>
+            
+            <div className="bg-[#1A1A1A] p-6 rounded-lg border border-gray-800">
+              <div className="w-10 h-10 rounded-full bg-[#3ECF8E]/10 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#3ECF8E" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Advanced Analytics Dashboard</h3>
+              <p className="text-gray-400 text-sm">
+                Detailed insights with statistical confidence scoring and user segment analysis.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Join waitlist CTA */}
+        <div className="mt-16 w-full bg-gradient-to-r from-[#1A1A1A] to-[#151515] rounded-xl border border-gray-800 p-8 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Don't Miss Out</h2>
+          <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+            Early access members get lifetime discounts, priority support, and input on future features.
+            Our waitlist is filling up fast - secure your spot today.
+          </p>
+          
+          <form 
+            className="max-w-md mx-auto flex flex-col sm:flex-row gap-3"
+            onSubmit={(e) => handleSubmit(e, email2, setEmail2, setIsSubmitting2)}
+          >
+            <input 
+              type="email" 
+              placeholder="Your email address"
+              value={email2}
+              onChange={(e) => setEmail2(e.target.value)}
+              className="flex-grow px-4 py-3 rounded-lg bg-[#1A1A1A] border border-[#333333] focus:border-[#3ECF8E] focus:outline-none text-white placeholder-gray-500"
+              required
+            />
+            <button 
+              type="submit" 
+              className="bg-[#3ECF8E] hover:bg-[#34B97C] text-black font-medium px-6 py-3 rounded-lg transition-colors whitespace-nowrap flex items-center justify-center"
+              disabled={isSubmitting2}
+            >
+              {isSubmitting2 ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Joining...
+                </>
+              ) : "Join Waitlist"}
+            </button>
+          </form>
+          
+          {submitStatus.message && (
+            <div className={`mt-2 text-sm ${submitStatus.isError ? 'text-red-400' : 'text-green-400'}`}>
+              {submitStatus.message}
+            </div>
+          )}
+        </div>
+        
       </main>
     </div>
   );
