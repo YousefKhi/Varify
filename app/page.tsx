@@ -230,7 +230,7 @@ export default function Page() {
         <div className="mt-16 w-full bg-[#151515] rounded-xl border border-gray-800 p-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Coming Soon</h2>
           <p className="text-gray-300 mb-8 max-w-3xl mx-auto">
-            Join our waitlist today and be the first to experience these game-changing features as soon as they're released:
+            Join our waitlist today and be the first to experience these game-changing features as soon as they&apos;re released:
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -274,7 +274,7 @@ export default function Page() {
         
         {/* Join waitlist CTA */}
         <div className="mt-16 w-full bg-gradient-to-r from-[#1A1A1A] to-[#151515] rounded-xl border border-gray-800 p-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Don't Miss Out</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Don&apos;t Miss Out</h2>
           <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
             Early access members get lifetime discounts, priority support, and input on future features.
             Our waitlist is filling up fast - secure your spot today.
