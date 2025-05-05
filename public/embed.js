@@ -54,12 +54,21 @@
   };
 
   // ▶️ Tracking helpers
+  // Send a daily upsert to variant_metrics via sendBeacon
   const trackView = (testId, variant) => {
+    const payload = {
+      test_id: testId,
+      variant,
+      day: new Date().toISOString().slice(0,10),
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent
+    };
     navigator.sendBeacon(
-      `${API_BASE_URL}/view`,
-      JSON.stringify({ testId, variant, timestamp: Date.now(), userAgent: navigator.userAgent })
+      `${API_BASE_URL}/variant_metrics`,
+      JSON.stringify(payload)
     );
   };
+
   const trackConversion = async (testId, variant, event) => {
     try {
       await fetch(`${API_BASE_URL}/conversion`, {
@@ -98,7 +107,7 @@
     const projectId = getProjectId();
     if (!projectId) return;
 
-    // ping server
+    // ping server (optional)
     fetch(`${API_BASE_URL}/ping-script`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

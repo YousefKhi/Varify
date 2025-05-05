@@ -13,18 +13,11 @@ export default function EmbedCodeModal({ projectId, onClose }: EmbedCodeModalPro
   const codeRef = useRef<HTMLPreElement>(null);
   
   // Generate embed code snippet for the project
-  const embedCode = `<!-- Varify A/B Testing Script -->
-<script>
-  (function(w,d,s,p,i) {
-    var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s);
-    j.async=true;
-    j.src='https://varify-sepia.vercel.app/public/embed.js';
-    j.setAttribute('data-project-id', '${projectId}');
-    f.parentNode.insertBefore(j,f);
-  })(window,document,'script','${projectId}');
-</script>
-<!-- End Varify Script -->`;
+  const embedCode = `<script
+  async
+  src="https://varify-sepia.vercel.app/embed.js"
+  data-project-id="${projectId}">
+</script>`;
 
   const handleCopy = () => {
     if (codeRef.current) {

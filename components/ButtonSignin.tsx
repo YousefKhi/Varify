@@ -36,30 +36,32 @@ const ButtonSignin = ({
     return (
       <Link
         href={config.auth.callbackUrl}
-        className={`btn ${extraStyle ? extraStyle : ""}`}
+        className={`inline-flex items-center px-4 py-2 bg-[#2a2a2a] hover:bg-[#333333] text-white rounded-md transition-colors border border-[#444444] ${extraStyle ? extraStyle : ""}`}
       >
         {user?.user_metadata?.avatar_url ? (
           <img
             src={user?.user_metadata?.avatar_url}
             alt={user?.user_metadata?.name || "Account"}
-            className="w-6 h-6 rounded-full shrink-0"
+            className="w-6 h-6 rounded-full shrink-0 mr-2"
             referrerPolicy="no-referrer"
             width={24}
             height={24}
           />
         ) : (
-          <span className="w-6 h-6 bg-base-300 flex justify-center items-center rounded-full shrink-0">
+          <span className="w-6 h-6 bg-[#1f1f1f] flex justify-center items-center rounded-full shrink-0 mr-2 text-white">
             {user?.user_metadata?.name?.charAt(0) || user?.email?.charAt(0)}
           </span>
         )}
-        {user?.user_metadata?.name || user?.email || "Account"}
+        <span className="truncate">
+          {user?.user_metadata?.name || user?.email || "Account"}
+        </span>
       </Link>
     );
   }
 
   return (
     <Link
-      className={`btn ${extraStyle ? extraStyle : ""}`}
+      className={`inline-flex items-center justify-center px-4 py-2 bg-[#2a2a2a] hover:bg-[#333333] text-white rounded-md transition-colors border border-[#444444] ${extraStyle ? extraStyle : ""}`}
       href={config.auth.loginUrl}
     >
       {text}

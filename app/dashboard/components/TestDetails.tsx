@@ -4,6 +4,19 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/libs/supabase/client";
 import toast from "react-hot-toast";
 import CodePreview from "./CodePreview";
+import dynamic from "next/dynamic";
+
+// Dynamically import Recharts components to avoid SSR issues
+const LineChart = dynamic<any>(() => import("recharts").then((mod) => mod.LineChart), { ssr: false });
+const BarChart = dynamic<any>(() => import("recharts").then((mod) => mod.BarChart), { ssr: false });
+const Bar = dynamic<any>(() => import("recharts").then((mod) => mod.Bar), { ssr: false });
+const Line = dynamic<any>(() => import("recharts").then((mod) => mod.Line), { ssr: false });
+const XAxis = dynamic<any>(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
+const YAxis = dynamic<any>(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic<any>(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic<any>(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false });
+const Legend = dynamic<any>(() => import("recharts").then((mod) => mod.Legend), { ssr: false });
+const ResponsiveContainer = dynamic<any>(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false });
 
 type TestDetailsProps = {
   testId: string;
@@ -36,20 +49,27 @@ type Variant = {
   created_at: string;
 };
 
+type VariantData = {
+  views: number;
+  conversions: number;
+  conversionRate: number;
+  revenue: number;
+};
+
+type DailyMetric = {
+  day: string;
+  variantA: VariantData;
+  variantB: VariantData;
+};
+
 type Stats = {
   views: number;
   conversions: number;
   conversionRate: number;
-  variantA: {
-    views: number;
-    conversions: number;
-    conversionRate: number;
-  };
-  variantB: {
-    views: number;
-    conversions: number;
-    conversionRate: number;
-  };
+  revenue: number;
+  dailyData: DailyMetric[];
+  variantA: VariantData;
+  variantB: VariantData;
 };
 
 export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDetailsProps) {
@@ -59,8 +79,20 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
     views: 0,
     conversions: 0,
     conversionRate: 0,
-    variantA: { views: 0, conversions: 0, conversionRate: 0 },
-    variantB: { views: 0, conversions: 0, conversionRate: 0 },
+    revenue: 0,
+    dailyData: [],
+    variantA: { 
+      views: 0, 
+      conversions: 0, 
+      conversionRate: 0,
+      revenue: 0 
+    },
+    variantB: { 
+      views: 0, 
+      conversions: 0, 
+      conversionRate: 0,
+      revenue: 0 
+    },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,70 +115,114 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
         if (testError) throw testError;
         setTest(testData);
         
-        // Fetch variant
-        const { data: variantData, error: variantError } = await supabase
-          .from("variants")
+        // Set variant from test data
+        setVariant({
+          id: testId,
+          name: testData.name,
+          test_id: testId,
+          variant_a_code: testData.variant_a_code || "<div>Original content</div>",
+          variant_b_code: testData.variant_b_code || "<div>Variant content</div>",
+          created_at: testData.created_at
+        });
+        
+        // Fetch metrics from variant_metrics
+        const { data: metricsData, error: metricsError } = await supabase
+          .from("variant_metrics")
           .select("*")
-          .eq("test_id", testId)
-          .single();
+          .eq("test_id", testId);
           
-        if (variantError && variantError.code !== "PGRST116") {
-          // PGRST116 is "no rows returned" - acceptable but unusual
-          throw variantError;
+        if (metricsError) throw metricsError;
+        
+        // Process metrics data
+        const variantA: VariantData = {
+          views: 0,
+          conversions: 0,
+          conversionRate: 0,
+          revenue: 0
+        };
+        
+        const variantB: VariantData = {
+          views: 0,
+          conversions: 0,
+          conversionRate: 0,
+          revenue: 0
+        };
+        
+        const dailyData: DailyMetric[] = [];
+        
+        if (metricsData && metricsData.length > 0) {
+          // Group by day
+          const metricsByDay = metricsData.reduce((acc, metric) => {
+            const day = new Date(metric.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            
+            if (!acc[day]) {
+              acc[day] = {
+                day,
+                variantA: { views: 0, conversions: 0, conversionRate: 0, revenue: 0 },
+                variantB: { views: 0, conversions: 0, conversionRate: 0, revenue: 0 }
+              };
+            }
+            
+            const variant = metric.variant === 'A' ? 'variantA' : 'variantB';
+            acc[day][variant].views = (acc[day][variant].views || 0) + (metric.views_count || 0);
+            acc[day][variant].conversions = (acc[day][variant].conversions || 0) + (metric.conv_count || 0);
+            acc[day][variant].revenue = (acc[day][variant].revenue || 0) + (metric.revenue || 0);
+            
+            return acc;
+          }, {});
+          
+          // Calculate conversion rates and add to dailyData
+          Object.values(metricsByDay).forEach((dayData: any) => {
+            dayData.variantA.conversionRate = dayData.variantA.views > 0 
+              ? (dayData.variantA.conversions / dayData.variantA.views) * 100 
+              : 0;
+              
+            dayData.variantB.conversionRate = dayData.variantB.views > 0 
+              ? (dayData.variantB.conversions / dayData.variantB.views) * 100 
+              : 0;
+              
+            dailyData.push(dayData);
+          });
+          
+          // Calculate totals
+          metricsData.forEach(metric => {
+            if (metric.variant === 'A') {
+              variantA.views += metric.views_count || 0;
+              variantA.conversions += metric.conv_count || 0;
+              variantA.revenue += metric.revenue || 0;
+            } else {
+              variantB.views += metric.views_count || 0;
+              variantB.conversions += metric.conv_count || 0;
+              variantB.revenue += metric.revenue || 0;
+            }
+          });
+          
+          variantA.conversionRate = variantA.views > 0 
+            ? (variantA.conversions / variantA.views) * 100 
+            : 0;
+            
+          variantB.conversionRate = variantB.views > 0 
+            ? (variantB.conversions / variantB.views) * 100 
+            : 0;
         }
         
-        setVariant(variantData || null);
-        
-        // Fetch view stats
-        const { count: viewsCount, error: viewsError } = await supabase
-          .from("views")
-          .select("*", { count: "exact" })
-          .eq("test_id", testId);
-          
-        // Fetch conversion stats
-        const { count: conversionsCount, error: conversionsError } = await supabase
-          .from("conversions")
-          .select("*", { count: "exact" })
-          .eq("test_id", testId);
-         
-        // Calculate stats
-        const totalViews = viewsCount || 0;
-        const totalConversions = conversionsCount || 0;
-        const conversionRate = totalViews > 0 
-          ? (totalConversions / totalViews) * 100 
-          : 0;
-        
-        // For simplicity, we'll use dummy data for variant-specific stats
-        // In a real implementation, you would track variant assignment in the DB
-        const variantASplit = 100 - (testData.split || 50);
-        const variantAViews = Math.round(totalViews * (variantASplit / 100));
-        const variantBViews = totalViews - variantAViews;
-        
-        const variantAConversions = Math.round(totalConversions * (variantASplit / 100));
-        const variantBConversions = totalConversions - variantAConversions;
-        
-        const variantARate = variantAViews > 0 
-          ? (variantAConversions / variantAViews) * 100 
-          : 0;
-          
-        const variantBRate = variantBViews > 0 
-          ? (variantBConversions / variantBViews) * 100 
-          : 0;
+        // Sort by date
+        dailyData.sort((a, b) => {
+          const dateA = new Date(a.day).getTime();
+          const dateB = new Date(b.day).getTime();
+          return dateA - dateB;
+        });
         
         setStats({
-          views: totalViews,
-          conversions: totalConversions,
-          conversionRate,
-          variantA: {
-            views: variantAViews,
-            conversions: variantAConversions,
-            conversionRate: variantARate
-          },
-          variantB: {
-            views: variantBViews,
-            conversions: variantBConversions,
-            conversionRate: variantBRate
-          }
+          views: variantA.views + variantB.views,
+          conversions: variantA.conversions + variantB.conversions,
+          conversionRate: (variantA.views + variantB.views) > 0 
+            ? ((variantA.conversions + variantB.conversions) / (variantA.views + variantB.views)) * 100 
+            : 0,
+          revenue: variantA.revenue + variantB.revenue,
+          dailyData,
+          variantA,
+          variantB
         });
       } catch (err) {
         console.error("Error fetching test details:", err);
@@ -227,7 +303,7 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
       </div>
       
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-[#171717] border border-gray-800 rounded-md p-5">
           <h3 className="text-sm font-medium text-gray-400 mb-1">Total Views</h3>
           <div className="text-2xl font-medium text-white">{stats.views.toLocaleString()}</div>
@@ -244,6 +320,12 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
           <h3 className="text-sm font-medium text-gray-400 mb-1">Conversion Rate</h3>
           <div className="text-2xl font-medium text-white">{stats.conversionRate.toFixed(2)}%</div>
           <p className="text-xs text-gray-500 mt-1">Percentage of views that convert</p>
+        </div>
+
+        <div className="bg-[#171717] border border-gray-800 rounded-md p-5">
+          <h3 className="text-sm font-medium text-gray-400 mb-1">Total Revenue</h3>
+          <div className="text-2xl font-medium text-white">${stats.revenue.toFixed(2)}</div>
+          <p className="text-xs text-gray-500 mt-1">Estimated revenue from conversions</p>
         </div>
       </div>
       
@@ -411,49 +493,212 @@ export default function TestDetails({ testId, onBack, onEdit, onDelete }: TestDe
         </div>
       </div>
       
-      {/* Variant Preview */}
-      {variant && (
-        <div className="bg-[#171717] border border-gray-800 rounded-md p-6">
-          <h3 className="text-md font-medium text-white mb-4">Variant Preview</h3>
-          
-          <div className="border-b border-gray-800 mb-6">
-            <div className="flex space-x-6">
-              <button
-                type="button"
-                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "a" ? "text-white border-b-2 border-[#39a276]" : "text-gray-400 hover:text-white"}`}
-                onClick={() => setActivePreview("a")}
-              >
-                Variant A (Original)
-              </button>
-              <button
-                type="button"
-                className={`text-sm pb-3 px-1 font-medium transition-colors ${activePreview === "b" ? "text-white border-b-2 border-[#39a276]" : "text-gray-400 hover:text-white"}`}
-                onClick={() => setActivePreview("b")}
-              >
-                Variant B (Test)
-              </button>
-            </div>
+      {/* Data Visualization Section */}
+      <div className="bg-[#171717] border border-gray-800 rounded-md p-6">
+        <h3 className="text-md font-medium text-white mb-4">Performance Analytics</h3>
+        
+        <div className="space-y-6">
+          {/* Metric selector tabs */}
+          <div className="flex space-x-2 border-b border-gray-800">
+            <button
+              className="px-4 py-2 text-sm font-medium text-white bg-[#1f1f1f] rounded-t-md border border-gray-800 border-b-0"
+            >
+              All Metrics
+            </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="text-sm font-medium text-gray-400 mb-2">HTML Code</div>
-              <div className="bg-[#1f1f1f] border border-gray-800 p-3 rounded-md">
-                <pre className="text-xs overflow-auto max-h-64 whitespace-pre-wrap text-gray-300">
-                  {activePreview === "a" ? variant.variant_a_code : variant.variant_b_code}
-                </pre>
+          {/* Views Chart */}
+          <div className="bg-[#1f1f1f] p-4 rounded-md border border-gray-800">
+            <h4 className="text-sm font-medium text-white mb-3">Views Comparison</h4>
+            {stats.dailyData.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={stats.dailyData}
+                    margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="day" stroke="#999" />
+                    <YAxis stroke="#999" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="variantA.views"
+                      name="Variant A"
+                      stroke="#3b82f6" // Blue
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="variantB.views"
+                      name="Variant B"
+                      stroke="#39a276" // Green
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-64 bg-gray-900/20 rounded">
+                <p className="text-gray-500 text-sm">No data available yet</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Conversion Rate Chart */}
+          <div className="bg-[#1f1f1f] p-4 rounded-md border border-gray-800">
+            <h4 className="text-sm font-medium text-white mb-3">Conversion Rate Comparison (%)</h4>
+            {stats.dailyData.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={stats.dailyData}
+                    margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="day" stroke="#999" />
+                    <YAxis stroke="#999" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }}
+                      labelStyle={{ color: '#fff' }}
+                      formatter={(value: any) => [`${parseFloat(value).toFixed(2)}%`, '']}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="variantA.conversionRate"
+                      name="Variant A"
+                      stroke="#3b82f6" // Blue
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="variantB.conversionRate"
+                      name="Variant B"
+                      stroke="#39a276" // Green
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-64 bg-gray-900/20 rounded">
+                <p className="text-gray-500 text-sm">No data available yet</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Revenue Chart */}
+          <div className="bg-[#1f1f1f] p-4 rounded-md border border-gray-800">
+            <h4 className="text-sm font-medium text-white mb-3">Revenue Comparison ($)</h4>
+            {stats.dailyData.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={stats.dailyData}
+                    margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="day" stroke="#999" />
+                    <YAxis stroke="#999" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#111', border: '1px solid #444' }}
+                      labelStyle={{ color: '#fff' }}
+                      formatter={(value: any) => [`$${parseFloat(value).toFixed(2)}`, '']}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="variantA.revenue"
+                      name="Variant A"
+                      fill="#3b82f6" // Blue
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="variantB.revenue"
+                      name="Variant B"
+                      fill="#39a276" // Green
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-64 bg-gray-900/20 rounded">
+                <p className="text-gray-500 text-sm">No data available yet</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Metrics Summary */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-[#1f1f1f] border border-gray-800 p-4 rounded-md">
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <h4 className="text-sm font-medium text-white">Variant A Performance</h4>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Total Views:</span>
+                <span className="text-white font-medium">{stats.variantA.views.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Conversion Rate:</span>
+                <span className="text-white font-medium">{stats.variantA.conversionRate.toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Total Revenue:</span>
+                <span className="text-white font-medium">${stats.variantA.revenue.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Avg. Revenue Per User:</span>
+                <span className="text-white font-medium">
+                  ${stats.variantA.views > 0 ? (stats.variantA.revenue / stats.variantA.views).toFixed(2) : '0.00'}
+                </span>
               </div>
             </div>
             
-            <div>
-              <div className="text-sm font-medium text-gray-400 mb-2">Visual Preview</div>
-              <div className="border border-gray-800 rounded-md overflow-hidden h-64 bg-white">
-                <CodePreview code={activePreview === "a" ? variant.variant_a_code : variant.variant_b_code} />
+            <div className="bg-[#1f1f1f] border border-gray-800 p-4 rounded-md">
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="w-3 h-3 bg-[#39a276] rounded-full"></div>
+                <h4 className="text-sm font-medium text-white">Variant B Performance</h4>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Total Views:</span>
+                <span className="text-white font-medium">{stats.variantB.views.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Conversion Rate:</span>
+                <span className="text-white font-medium">{stats.variantB.conversionRate.toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Total Revenue:</span>
+                <span className="text-white font-medium">${stats.variantB.revenue.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Avg. Revenue Per User:</span>
+                <span className="text-white font-medium">
+                  ${stats.variantB.views > 0 ? (stats.variantB.revenue / stats.variantB.views).toFixed(2) : '0.00'}
+                </span>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+      
+      {/* Variant Preview */}
+      
+     
     </div>
   );
 } 

@@ -17,16 +17,16 @@ export default function StepsIndicator({ currentStep }: StepsIndicatorProps) {
               <div 
                 className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
                   currentStep === step.id 
-                    ? "bg-primary text-white" 
+                    ? "bg-[#39a276] text-white" 
                     : currentStep > step.id 
-                      ? "bg-success text-white" 
-                      : "bg-base-300 text-base-content opacity-60"
+                      ? "bg-[#39a276] text-white" 
+                      : "bg-[#1f1f1f] border border-[#444444] text-gray-400"
                 }`}
               >
                 {currentStep > step.id ? (
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5" 
+                    className="h-4 w-4" 
                     viewBox="0 0 20 20" 
                     fill="currentColor"
                   >
@@ -43,8 +43,8 @@ export default function StepsIndicator({ currentStep }: StepsIndicatorProps) {
               <span 
                 className={`text-xs ${
                   currentStep === step.id 
-                    ? "text-primary font-semibold" 
-                    : "text-base-content/60"
+                    ? "text-white font-medium" 
+                    : "text-gray-400"
                 }`}
               >
                 {step.name}
@@ -53,10 +53,10 @@ export default function StepsIndicator({ currentStep }: StepsIndicatorProps) {
             
             {index < steps.length - 1 && (
               <div 
-                className={`h-0.5 w-10 mx-1 ${
+                className={`h-0.5 w-12 mx-2 ${
                   currentStep > index + 1 
-                    ? "bg-success" 
-                    : "bg-base-300"
+                    ? "bg-[#39a276]" 
+                    : "bg-[#2a2a2a]"
                 }`}
               />
             )}
