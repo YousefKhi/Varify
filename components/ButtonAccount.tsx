@@ -58,7 +58,7 @@ const ButtonAccount = () => {
     <Popover className="relative z-10">
       {({ open }) => (
         <>
-          <Popover.Button className="btn">
+          <Popover.Button className="inline-flex items-center px-4 py-2 bg-[#2a2a2a] hover:bg-[#333333] text-white rounded-md transition-colors border border-[#444444] gap-2">
             {user?.user_metadata?.avatar_url ? (
               <img
                 src={user?.user_metadata?.avatar_url}
@@ -69,23 +69,25 @@ const ButtonAccount = () => {
                 height={24}
               />
             ) : (
-              <span className="w-8 h-8 bg-base-100 flex justify-center items-center rounded-full shrink-0 capitalize">
+              <span className="w-8 h-8 bg-[#1f1f1f] flex justify-center items-center rounded-full shrink-0 capitalize text-[#39a276]">
                 {user?.email?.charAt(0)}
               </span>
             )}
 
-            {user?.user_metadata?.name ||
-              user?.email?.split("@")[0] ||
-              "Account"}
+            <span className="truncate">
+              {user?.user_metadata?.name ||
+                user?.email?.split("@")[0] ||
+                "Account"}
+            </span>
 
             {isLoading ? (
-              <span className="loading loading-spinner loading-xs"></span>
+              <span className="loading loading-spinner loading-xs text-white"></span>
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className={`w-5 h-5 duration-200 opacity-50 ${
+                className={`w-5 h-5 duration-200 text-gray-400 ${
                   open ? "transform rotate-180 " : ""
                 }`}
               >
@@ -105,18 +107,18 @@ const ButtonAccount = () => {
             leaveFrom="transform scale-100 opacity-100"
             leaveTo="transform scale-95 opacity-0"
           >
-            <Popover.Panel className="absolute left-0 z-10 mt-3 w-screen max-w-[16rem] transform">
-              <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-base-content ring-opacity-5 bg-base-100 p-1">
+            <Popover.Panel className="absolute right-0 z-10 mt-3 w-screen max-w-[16rem] transform">
+              <div className="overflow-hidden rounded-lg shadow-xl ring-1 ring-[#444444] bg-[#1f1f1f] p-1">
                 <div className="space-y-0.5 text-sm">
                   <button
-                    className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
+                    className="flex items-center gap-2 hover:bg-[#2a2a2a] duration-200 py-1.5 px-4 w-full rounded-lg font-medium text-white"
                     onClick={handleBilling}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="currentColor"
-                      className="w-5 h-5"
+                      className="w-5 h-5 text-[#39a276]"
                     >
                       <path
                         fillRule="evenodd"
@@ -127,7 +129,7 @@ const ButtonAccount = () => {
                     Billing
                   </button>
                   <button
-                    className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
+                    className="flex items-center gap-2 hover:bg-[#2a2a2a] text-red-500 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleSignOut}
                   >
                     <svg

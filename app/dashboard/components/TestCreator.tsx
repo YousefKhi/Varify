@@ -995,6 +995,9 @@ export default function TestCreator({ projectId, testId, onCancel }: TestCreator
             setVisualStep("variant");
           }}
           onCancel={onCancel}
+          onSwitchToManual={() => setCreationMethod("manual")}
+          onSwitchToGithub={() => setCreationMethod("github")}
+          hasGithubRepo={!!project?.repo_url}
         />
       );
     } else if (visualStep === "variant") {

@@ -18,9 +18,7 @@ export default function Dashboard() {
             <Link href="/dashboard" className="text-white border-b-2 border-[#39a276] font-medium pb-4 px-1">
               Overview
             </Link>
-            <Link href="/dashboard/settings" className="text-gray-400 hover:text-white pb-4 px-1">
-              Settings
-            </Link>
+           
           </nav>
         </div>
         
@@ -40,11 +38,7 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center space-x-3">
-            <select className="bg-[#1f1f1f] text-white border border-[#1f1f1f] rounded-md px-3 py-2 text-sm">
-              <option>Sort by: Recently Updated</option>
-              <option>Sort by: Name</option>
-              <option>Sort by: Created</option>
-            </select>
+            
             <AddAppButton />
           </div>
         </div>

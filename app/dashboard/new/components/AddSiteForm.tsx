@@ -96,7 +96,7 @@ export default function AddSiteForm() {
 
   // Connect to GitHub
   const connectGithub = () => {
-    window.location.href = '/api/auth/github';
+    window.location.href = '/signin';
   };
   
   // Create project from GitHub repo
@@ -249,15 +249,11 @@ export default function AddSiteForm() {
 
   const goToProject = () => {
     if (projectData) {
-      router.push(`/dashboard/projects/${projectData.id}`);
+      router.push(`/dashboard`);
     }
   };
 
-  const getStepClass = (step: number) => {
-    if (step === currentStep) return "bg-primary text-white";
-    if (step < currentStep) return "bg-success text-white";
-    return "bg-base-300 text-base-content opacity-60";
-  };
+  
   
   // Mode toggle handler
   const handleModeChange = (value: string) => {
@@ -473,27 +469,67 @@ export default function AddSiteForm() {
               <h3 className="font-medium mb-4 text-white">Select a repository to import</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 {githubRepos.map(repo => (
-                  <div key={repo.id} className="bg-[#1f1f1f] border border-[#444444] rounded-md hover:bg-[#2a2a2a] transition-colors p-4">
-                    <h4 className="font-medium text-white">{repo.name}</h4>
-                    {repo.description && (
-                      <p className="text-sm text-gray-400 line-clamp-2 mt-1">{repo.description}</p>
-                    )}
-                    <div className="flex items-center mt-2 text-xs text-gray-400">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${repo.visibility === 'public' ? 'bg-[#39a276]/20 text-[#39a276]' : 'bg-amber-500/20 text-amber-400'} mr-2`}>
-                        {repo.visibility}
-                      </span>
-                      <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-end mt-3">
-                      <button
-                        className="bg-[#39a276] hover:bg-opacity-90 text-white px-3 py-1.5 text-sm rounded-md transition-colors"
-                        onClick={() => createFromGithub(repo)}
-                        disabled={isSubmitting && selectedRepo?.id === repo.id}
-                      >
-                        {isSubmitting && selectedRepo?.id === repo.id ? (
-                          <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        ) : "Select"}
-                      </button>
+                  <div 
+                    key={repo.id} 
+                    className="relative bg-gradient-to-br from-[#1f1f1f] to-[#1a1a1a] border border-[#444444] rounded-lg overflow-hidden group hover:border-[#39a276]/50 transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-[#39a276]/5"
+                  >
+                    {/* Accent line at top */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39a276]/0 via-[#39a276] to-[#39a276]/0"></div>
+                    
+                    <div className="p-5">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mr-3 mt-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-5 h-5 text-gray-400 group-hover:text-[#39a276] transition-colors">
+                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-white text-lg truncate">{repo.name}</h4>
+                          {repo.description ? (
+                            <p className="text-sm text-gray-400 line-clamp-2 mt-1 min-h-[40px]">{repo.description}</p>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic mt-1 min-h-[40px]">No description available</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 pt-3 border-t border-[#333333] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            repo.visibility === 'public' 
+                              ? 'bg-[#39a276]/10 text-[#39a276] border border-[#39a276]/20' 
+                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          }`}>
+                            {repo.visibility}
+                          </span>
+                          <span className="text-xs text-gray-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 mr-1">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
+                            </svg>
+                            {new Date(repo.updated_at).toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                        <button
+                          className="bg-[#39a276] hover:bg-[#2c8660] text-white px-4 py-1.5 text-sm rounded-md transition-colors inline-flex items-center font-medium"
+                          onClick={() => createFromGithub(repo)}
+                          disabled={isSubmitting && selectedRepo?.id === repo.id}
+                        >
+                          {isSubmitting && selectedRepo?.id === repo.id ? (
+                            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                          ) : (
+                            <>
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 mr-1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                              </svg>
+                              Import
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
